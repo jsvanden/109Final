@@ -18,7 +18,7 @@ public:
     ListOfSets GetResultSet(FactName name);
     void AddFact (FactName name, FactParams params);
     void DropFact (FactName name);
-    void Export (std::ostream file);
+    void Export (std::ostream& file);
 };
 
 #endif

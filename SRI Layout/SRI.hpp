@@ -11,7 +11,7 @@ private:
     KnowledgeBase knowledgeBase;
     RuleBase ruleBase;
     void Drop (std::string name);
-    void Infer (std::string name, std::vector<std::string> params, std::string outFact = NULL);
+    void Infer (std::string name, std::vector<std::string> params, std::string outFact);
     std::unordered_map< std::string, std::function<void(std::string)> > commands;
     void InterpretFact(std::string fact);
     void InterpretRule(std::string rule);
