@@ -40,6 +40,7 @@ void SRI::Drop (string name)
 
 void SRI::Infer (string name, vector<std::string> params, string outFact)
 {
+    cout << name << endl;
 }
 
 void SRI::InterpretFact(string fact)
