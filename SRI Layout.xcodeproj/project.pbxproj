@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6703E19E1E5561D200765154 /* SRI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703E19D1E5561D200765154 /* SRI.cpp */; };
+		6703E1A01E557CF900765154 /* KnowledgeBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703E19F1E557CF900765154 /* KnowledgeBase.cpp */; };
 		678441081E52B22E00706DDC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678441071E52B22E00706DDC /* main.cpp */; };
 /* End PBXBuildFile section */
 
@@ -23,8 +25,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6703E19D1E5561D200765154 /* SRI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SRI.cpp; sourceTree = "<group>"; };
+		6703E19F1E557CF900765154 /* KnowledgeBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KnowledgeBase.cpp; sourceTree = "<group>"; };
 		678441041E52B22E00706DDC /* SRI Layout */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "SRI Layout"; sourceTree = BUILT_PRODUCTS_DIR; };
 		678441071E52B22E00706DDC /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		6784410F1E52B26700706DDC /* KnowledgeBase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = KnowledgeBase.hpp; sourceTree = "<group>"; };
+		678441121E52B6B600706DDC /* RuleBase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RuleBase.hpp; sourceTree = "<group>"; };
+		678441151E52BC2700706DDC /* SRI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SRI.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +65,11 @@
 			isa = PBXGroup;
 			children = (
 				678441071E52B22E00706DDC /* main.cpp */,
+				6784410F1E52B26700706DDC /* KnowledgeBase.hpp */,
+				6703E19F1E557CF900765154 /* KnowledgeBase.cpp */,
+				678441121E52B6B600706DDC /* RuleBase.hpp */,
+				678441151E52BC2700706DDC /* SRI.hpp */,
+				6703E19D1E5561D200765154 /* SRI.cpp */,
 			);
 			path = "SRI Layout";
 			sourceTree = "<group>";
@@ -119,6 +131,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6703E19E1E5561D200765154 /* SRI.cpp in Sources */,
+				6703E1A01E557CF900765154 /* KnowledgeBase.cpp in Sources */,
 				678441081E52B22E00706DDC /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -246,6 +260,7 @@
 				6784410D1E52B22E00706DDC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

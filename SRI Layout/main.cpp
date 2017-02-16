@@ -1,15 +1,19 @@
-//
-//  main.cpp
-//  SRI Layout
-//
-//  Created by Jarrett on 2/13/17.
-//  Copyright © 2017 Jarrett. All rights reserved.
-//
-
+#include "SRI.hpp"
 #include <iostream>
 
-int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
+using namespace std;
+
+int main()
+{
+    cout << "Begin!" << endl;
+    
+    SRI engine;
+    
+    string input;
+    while (getline(cin, input))
+    {
+        engine.InterpretLine(input);
+    }
+    
     return 0;
 }
