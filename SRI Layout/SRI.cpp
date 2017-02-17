@@ -74,8 +74,7 @@ void SRI::Rule(vector<string> input)
     input.erase(input.begin() + 1);
     
     // =========================
-    
-    vector<Clause> clauses;
+
     for (int i = 1; i < input.size(); ++i)
     {
         entry.clauses.push_back( StringToClause(input[i]) );
@@ -96,5 +95,6 @@ void SRI::Load(vector<string> input)
 
 void SRI::Infer(vector<string> input)
 {
-    
+    Clause inference = StringToClause(input[0]);
+    string outputFact = (input.size() > 1) ? input[1] : "";
 }

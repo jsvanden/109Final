@@ -36,8 +36,10 @@ namespace utility
         string word;
         while (getline(stream, word, delimiter))
         {
-            if (word.find_first_not_of(' ') != string::npos)
-                output.push_back(word);
+            if (word.find_first_not_of(' ') == string::npos)
+                continue;
+            
+            output.push_back(word);
         }
         
         return output;

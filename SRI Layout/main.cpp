@@ -15,14 +15,17 @@ int main()
     string fact2 = "FACT Father(Roger,Jp)";
     string fact3 = "FACT Mother(Lu,We)";
     string infer = "INFERENCE GrandFather($X,$Y) GF";
+    string infer2 = "INFERENCE Parent($X,$Y)";
     string drop = "DROP Parent";
     string drop2 = "DROP Father";
     string dump = "DUMP updated_family_relation.sri";
     
-    engine.InterpretLine(fact);
-    engine.InterpretLine(fact2);
-    engine.InterpretLine(fact3);
-    engine.InterpretLine(drop2);
+    engine.InterpretLine(infer);
+    cout << endl;
+    engine.InterpretLine(infer2);
+    //engine.InterpretLine(fact2);
+    //engine.InterpretLine(fact3);
+    //engine.InterpretLine(drop2);
     
     /*
     string input;
