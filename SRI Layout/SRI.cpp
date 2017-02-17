@@ -6,195 +6,95 @@ using namespace std;
 using namespace std::placeholders;
 using namespace utility;
 
-void SRI::InterpretLine(const string& line)
+void SRI::InterpretLine(string& line)
 {
-    unsigned long cutoff = line.find_first_of(" \t");
-    string command = line.substr(0, cutoff);
-    string params = line.substr(cutoff + 1);
+    makeValid(line);
+    vector<string> words = StringToVector(line, ' ');
     
-    command.erase(remove_if(command.begin(), command.end(), [](char c){return !isValidChar(c);}), command.end());
-    params.erase(remove_if(params.begin(), params.end(), [](char c){return !isValidChar(c);}), params.end());
-    
-    auto commandFuncPair = commands.find (command);
-    
-    if ( commandFuncPair == commands.end() )
+    auto commandFunction = commands.find (words[0]);
+    if ( commandFunction == commands.end() )
         return;
     
-    commandFuncPair->second(params);
+    words.erase(words.begin());
+    
+    commandFunction->second(words);
 }
 
 SRI::SRI()
 {
     commands.insert(make_pair("LOAD", bind (&SRI::Load, this, _1)));
     commands.insert(make_pair("DUMP", bind (&SRI::Save, this, _1)));
-    commands.insert(make_pair("FACT", bind (&SRI::InterpretFact, this, _1)));
-    commands.insert(make_pair("RULE", bind (&SRI::InterpretRule, this, _1)));
-    commands.insert(make_pair("INFERENCE", bind (&SRI::InterpretInference, this, _1)));
+    commands.insert(make_pair("FACT", bind (&SRI::Fact, this, _1)));
+    commands.insert(make_pair("RULE", bind (&SRI::Rule, this, _1)));
+    commands.insert(make_pair("INFERENCE", bind (&SRI::Infer, this, _1)));
     commands.insert(make_pair("DROP", bind (&SRI::Drop, this, _1)));
     
     commands.insert(make_pair("l", bind (&SRI::Load, this, _1)));
     commands.insert(make_pair("s", bind (&SRI::Save, this, _1)));
-    commands.insert(make_pair("f", bind (&SRI::InterpretFact, this, _1)));
-    commands.insert(make_pair("r", bind (&SRI::InterpretRule, this, _1)));
-    commands.insert(make_pair("i", bind (&SRI::InterpretInference, this, _1)));
+    commands.insert(make_pair("f", bind (&SRI::Fact, this, _1)));
+    commands.insert(make_pair("r", bind (&SRI::Rule, this, _1)));
+    commands.insert(make_pair("i", bind (&SRI::Infer, this, _1)));
     commands.insert(make_pair("d", bind (&SRI::Drop, this, _1)));
 }
 
-SRI::~SRI()
+SRI::~SRI(){}
+
+void SRI::Drop(vector<string> input)
 {
-    
+    knowledgeBase.DropFact(input[0]);
+    ruleBase.DropRule(input[0]);
 }
 
-void SRI::Drop (string name)
+void SRI::Fact(vector<string> input)
 {
-    knowledgeBase.DropFact(name);
-    ruleBase.DropRule(name);
+    Clause fact= StringToClause(input[0]);
+    knowledgeBase.AddFact(fact.name, fact.parameters);
 }
 
-void SRI::Infer (string name, vector<std::string> params, string outFact)
+void SRI::Rule(vector<string> input)
 {
-    cout << name << endl;
-}
+    Subrule entry;
 
-void SRI::InterpretFact(string fact)
-{
-    vector<string> params;
+    Clause firstClause = StringToClause(input[0]);
     
-    // ------------------------------------------
+    entry.parameters = firstClause.parameters;
     
-    unsigned long cutoff = fact.find_first_of("(");
+    // =========================
     
-    if (cutoff == string::npos)
-        return;
-    
-    string factName = fact.substr(0, cutoff);
-    string paramString = fact.substr(cutoff + 1);
-    
-    // ------------------------------------------
-    
-    while (true)
+    if (input[1] == "AND")
     {
-        cutoff = paramString.find_first_of(",");
-    
-        if (cutoff == string::npos)
-            cutoff = paramString.find_first_of(")");
-    
-        if (cutoff == string::npos)
-            break;
-        
-        params.push_back(paramString.substr(0, cutoff));
-        paramString = paramString.substr(cutoff + 1);
+        entry.isAnd = true;
     }
-    
-    // ------------------------------------------
-    
-    knowledgeBase.AddFact(factName, params);
-}
-
-void SRI::InterpretRule(string rule)
-{
-    vector<string> params;
-    
-    // ------------------------------------------
-    
-    unsigned long cutoff = rule.find_first_of("(");
-    
-    if (cutoff == string::npos)
-        return;
-    
-    string ruleName = rule.substr(0, cutoff);
-    string paramString = rule.substr(cutoff + 1);
-    
-    // ------------------------------------------
-    
-    unsigned long cutoff_C;
-    unsigned long cutoff_P;
-    
-    while (true)
+    else if (input[1] == "OR")
     {
-        cutoff_C = paramString.find_first_of(",");
-        cutoff_P = paramString.find_first_of(")");
-        
-        if (cutoff_C == string::npos && cutoff_P == string::npos)
-            break;
-        
-        if (cutoff_P <= cutoff_C)
-            break;
-        
-        params.push_back(paramString.substr(0, cutoff_C));
-        paramString = paramString.substr(cutoff_C + 1);
-    }
-    
-    params.push_back(paramString.substr(0, cutoff_P));
-    paramString = paramString.substr(cutoff_P + 1);
-    
-    // ------------------------------------------
-    
-    string s_and = "AND";
-    string s_or = "OR";
-    bool isAnd;
-    
-    if (strncmp(paramString.c_str(), s_and.c_str(), s_and.size()) == 0)
-    {
-        isAnd = true;
-        paramString = paramString.substr(3);
-    }
-    else if (strncmp(paramString.c_str(), s_or.c_str(), s_or.size()) == 0)
-    {
-        isAnd = false;
-        paramString = paramString.substr(2);
+        entry.isAnd = false;
     }
     else return;
     
-    // ------------------------------------------
+    input.erase(input.begin() + 1);
     
-    cout << ruleName << endl;
-    for (auto i : params)
-        cout << i << " ";
-    cout << endl << paramString << endl;
-}
-
-void SRI::InterpretInference(string inference)
-{
-    vector<string> params;
+    // =========================
     
-    // ------------------------------------------
-    
-    unsigned long cutoff = inference.find_first_of("(");
-    
-    if (cutoff == string::npos)
-        return;
-    
-    string inferName = inference.substr(0, cutoff);
-    string paramString = inference.substr(cutoff + 1);
-    
-    // ------------------------------------------
-    
-    while (true)
+    vector<Clause> clauses;
+    for (int i = 1; i < input.size(); ++i)
     {
-        cutoff = paramString.find_first_of(",");
-        
-        if (cutoff == string::npos)
-            cutoff = paramString.find_first_of(")");
-        
-        if (cutoff == string::npos)
-            break;
-        
-        params.push_back(paramString.substr(0, cutoff));
-        paramString = paramString.substr(cutoff + 1);
+        entry.clauses.push_back( StringToClause(input[i]) );
     }
     
-    
-    
-    Infer(inferName, params, paramString);
+    ruleBase.AddRule(firstClause.name, entry);
 }
 
-void SRI::Load (string filePath)
+void SRI::Save(vector<string> input)
 {
-    cout << filePath << endl;
+    string filePath = input[0];
 }
 
-void SRI::Save (string filePath)
+void SRI::Load(vector<string> input)
 {
-    cout << filePath << endl;
+    string filePath = input[0];
+}
+
+void SRI::Infer(vector<string> input)
+{
+    
 }

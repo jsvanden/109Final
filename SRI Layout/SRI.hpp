@@ -7,20 +7,23 @@
 
 class SRI
 {
+    typedef std::vector<std::string> ListOfWords;
+    
 private:
     KnowledgeBase knowledgeBase;
     RuleBase ruleBase;
-    void Drop (std::string name);
-    void Infer (std::string name, std::vector<std::string> params, std::string outFact);
-    std::unordered_map< std::string, std::function<void(std::string)> > commands;
-    void InterpretFact(std::string fact);
-    void InterpretRule(std::string rule);
-    void InterpretInference(std::string inference);
-    void Load (std::string filePath);
-    void Save (std::string filePath);
+    
+    void Drop(ListOfWords input);
+    void Fact(ListOfWords input);
+    void Rule(ListOfWords input);
+    void Save(ListOfWords input);
+    void Load(ListOfWords input);
+    void Infer(ListOfWords input);
+
+    std::unordered_map< std::string, std::function<void(ListOfWords)> > commands;
 
 public:
-    void InterpretLine (const std::string& line);
+    void InterpretLine (std::string& line);
     std::vector<std::string> GetSet (std::string name);
     SRI();
     ~SRI();

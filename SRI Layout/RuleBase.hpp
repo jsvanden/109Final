@@ -35,7 +35,7 @@ public:
     ListOfSets GetResultSet(RuleName name);
     void AddRule (RuleName name, Subrule info);
     void DropRule (RuleName name);
-    void Export (std::ostream file);
+    void Export (std::ostream& file);
 };
 
 #endif
