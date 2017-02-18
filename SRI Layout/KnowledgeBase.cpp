@@ -25,7 +25,7 @@ void KnowledgeBase::DropFact (string name)
     Export(cout);
 }
 
-vector<vector<string>> GetResultSet(string name)
+vector<vector<string>> KnowledgeBase::GetResultSet(string name)
 {
     vector<vector<string>> temp;
     return temp;

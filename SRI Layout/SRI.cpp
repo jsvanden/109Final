@@ -97,4 +97,20 @@ void SRI::Infer(vector<string> input)
 {
     Clause inference = StringToClause(input[0]);
     string outputFact = (input.size() > 1) ? input[1] : "";
+    
+    vector<vector<string>> factResults = knowledgeBase.GetResultSet(inference.name);
+    vector<vector<string>> ruleResults = ruleBase.GetResultSet(inference.name);
+    vector<vector<string>> results;
+    
+    results.reserve( factResults.size() + ruleResults.size() );
+    results.insert( results.end(), factResults.begin(), factResults.end() );
+    results.insert( results.end(), ruleResults.begin(), ruleResults.end() );
+    
+    if (outputFact != "")
+    {
+        for (auto i : results)
+        {
+            knowledgeBase.AddFact(outputFact, i);
+        }
+    }
 }

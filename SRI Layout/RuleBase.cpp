@@ -25,6 +25,12 @@ void RuleBase::AddRule (string name, Subrule info)
     Export(cout);
 }
 
+vector<vector<string>> RuleBase::GetResultSet(string name)
+{
+    vector<vector<string>> temp;
+    return temp;
+}
+
 void RuleBase::Export(ostream& file)
 {
     file << "==== RULES ====" << endl;
