@@ -8,7 +8,7 @@ using namespace utility;
 
 void SRI::InterpretLine(string& line)
 {
-    makeValid(line);
+    MakeValid(line);
     vector<string> words = StringToVector(line, ' ');
     
     auto commandFunction = commands.find (words[0]);
@@ -35,6 +35,8 @@ SRI::SRI()
     commands.insert(make_pair("r", bind (&SRI::Rule, this, _1)));
     commands.insert(make_pair("i", bind (&SRI::Infer, this, _1)));
     commands.insert(make_pair("d", bind (&SRI::Drop, this, _1)));
+    
+    ruleBase.engine = (this);
 }
 
 SRI::~SRI(){}
@@ -98,7 +100,7 @@ void SRI::Infer(vector<string> input)
     Clause inference = StringToClause(input[0]);
     string outputFact = (input.size() > 1) ? input[1] : "";
     
-    vector<vector<string>> results = GetSet(inference.name);
+    vector<vector<string>> results = GetSet(inference.name, inference.parameters);
     
     if (outputFact != "")
     {
@@ -109,13 +111,13 @@ void SRI::Infer(vector<string> input)
     }
 }
 
-vector<vector<string>> SRI::GetSet (string name)
+vector<vector<string>> SRI::GetSet (string name, vector<string> params)
 {
     vector<vector<string>> temp;
     
     
-    vector<vector<string>> factResults = knowledgeBase.GetResultSet(name);
-    vector<vector<string>> ruleResults = ruleBase.GetResultSet(name);
+    vector<vector<string>> factResults = knowledgeBase.GetResultSet(name, params);
+    vector<vector<string>> ruleResults = ruleBase.GetResultSet(name, params);
     vector<vector<string>> output;
     
     output.reserve( factResults.size() + ruleResults.size() );

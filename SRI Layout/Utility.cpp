@@ -23,7 +23,7 @@ namespace utility
         }
     }
     
-    void makeValid (string& input)
+    void MakeValid (string& input)
     {
         input.erase(remove_if(input.begin(), input.end(), [](char c){return !isValidChar(c);}), input.end());
     }
@@ -62,5 +62,17 @@ namespace utility
             output.parameters.push_back(i);
         
         return output;
+    }
+    
+    bool IsVariable (string input)
+    {
+        return (input[0] == '$');
+    }
+    
+    int FindIndexOf (vector<string> vector, string value)
+    {
+        int result = (int) (find(vector.begin(), vector.end(), value) - vector.begin());
+        
+        return (result == vector.size()) ? -1 : result;
     }
 }

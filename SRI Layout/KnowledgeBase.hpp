@@ -15,7 +15,7 @@ private:
     std::unordered_map<FactName, ListOfSets> facts;
     
 public:
-    ListOfSets GetResultSet(FactName name);
+    ListOfSets GetResultSet(FactName name, FactParams params);
     void AddFact (FactName name, FactParams params);
     void DropFact (FactName name);
     void Export (std::ostream& file);

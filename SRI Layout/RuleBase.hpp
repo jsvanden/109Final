@@ -23,6 +23,8 @@ class SRI;
 
 class RuleBase
 {
+    friend class SRI;
+    
     typedef std::string RuleName;
     typedef std::vector< Subrule > ListOfSubrules;
     typedef std::vector<std::vector<std::string>> ListOfSets;
@@ -30,9 +32,11 @@ class RuleBase
 private:
     SRI * engine;
     std::unordered_map<RuleName, ListOfSubrules> rules;
+    ListOfSets GetResultsOR(Subrule subrule, std::string name, std::vector<std::string> params);
+    ListOfSets GetResultsAND(Subrule subrule, std::string name, std::vector<std::string> params);
     
 public:
-    ListOfSets GetResultSet(RuleName name);
+    ListOfSets GetResultSet(RuleName name, std::vector<std::string> params);
     void AddRule (RuleName name, Subrule info);
     void DropRule (RuleName name);
     void Export (std::ostream& file);
