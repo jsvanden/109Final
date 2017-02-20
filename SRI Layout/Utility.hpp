@@ -12,6 +12,7 @@ namespace utility
     Clause StringToClause(std::string input);
     bool IsVariable (std::string input);
     int FindIndexOf (std::vector<std::string> vector, std::string value);
+    std::vector<std::vector<std::string>> PermutateVector (std::vector<std::vector<std::string>> input);
 }
 
 #endif

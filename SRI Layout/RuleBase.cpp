@@ -123,7 +123,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             clauseInputs.push_back(parameterInputs);
         }
         
-        vector<vector<string>> clausePermutation;
+        vector<vector<string>> clausePermutation = PermutateVector(clauseInputs);
         
         
     }

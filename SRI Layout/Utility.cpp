@@ -1,5 +1,7 @@
 #include "Utility.hpp"
 #include <sstream>
+#include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -75,4 +77,38 @@ namespace utility
         
         return (result == vector.size()) ? -1 : result;
     }
+    
+    vector<vector<string>> PermutateVector (vector<vector<string>> input)
+    {
+        vector<vector<string>> output2;
+        
+        int outputSize = 0;
+        
+        for (int k=0; k < input.size(); ++k)
+        {
+            int permutationSize = (int) input[k].size();
+            
+            for (int i = k+1; i < input.size(); ++i)
+            {
+                permutationSize *= input[i].size();
+            }
+            
+            outputSize = (k == 0) ? permutationSize : outputSize;
+            
+            for (int i = 0; i < outputSize; i++)
+            {
+                int index = floor(i / (permutationSize / input[k].size()) % input[k].size());
+                
+                if (k == 0)
+                    output2.push_back(vector<string> {input[k][index]});
+                else
+                    output2[i].push_back(input[k][index]);
+            }
+        }
+        
+        return output2;
+    }
 }
+
+
+
