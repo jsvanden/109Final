@@ -6,28 +6,30 @@ using namespace std;
 
 int main()
 {
-    cout << "Begin!" << endl;
+    //cout << "Begin!" << endl;
     
     SRI engine;
     
-    string rule = "RULE Parent($X,$Y):- OR Father($X,$Y) Mother($X,$Y)";
-    string rule2 = "RULE Parent2($X,$Y):- AND Father($X,$Z) FA($Z,$Y)";
-    string fact = "FACT Father(Roger,John)";
+    string fact = "FACT Father(Reggie,John)";
     string fact2 = "FACT Father(Roger,Jp)";
-    string fact3 = "FACT Mother(Lu,We)";
-    string fact4 = "FACT Father(Lu,Jp)";
-    string infer = "INFERENCE GrandFather($X,$Y) GF";
-    string infer2 = "INFERENCE Parent($X,$Y) P";
-    string infer3 = "INFERENCE Father($egew,Jp) F";
-    string drop = "DROP Parent";
-    string drop2 = "DROP Father";
-    string dump = "DUMP updated_family_relation.sri";
+    string fact3 = "FACT Parent(Jp,road)";
+    string fact4 = "FACT Father(Lu,Jo)";
+    string fact5 = "FACT Parent(Jo,road2)";
     
-    //engine.InterpretLine(fact);
-    //engine.InterpretLine(fact2);
-    //engine.InterpretLine(fact4);
+    string rule2 = "RULE PA($X,$Y):- OR Father($X,$Z) Parent($Z,$Y)";
+    string infer2 = "INFERENCE PA($X,$Y) P";
+    
+    engine.InterpretLine(fact);
+    engine.InterpretLine(fact2);
+    engine.InterpretLine(fact3);
+    engine.InterpretLine(fact4);
+    engine.InterpretLine(fact5);
+    
+    engine.InterpretLine(rule2);
+    
+    
     //cout << endl;
-    //engine.InterpretLine(infer3);
+    engine.InterpretLine(infer2);
     //engine.InterpretLine(fact2);
     //engine.InterpretLine(fact3);
     //engine.InterpretLine(drop2);

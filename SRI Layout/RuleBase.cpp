@@ -25,7 +25,7 @@ void RuleBase::AddRule (string name, Subrule info)
         rules[name].push_back(info);
     }
     
-    Export(cout);
+    //Export(cout);
 }
 
 vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params)
@@ -92,26 +92,28 @@ vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vect
 vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vector<string> params)
 {
     unordered_map<string, vector<string>> nameMappings;
-    
-    for (int i = 0; i < subrule.parameters.size(); ++i)
-    {
-        nameMappings[subrule.parameters[i]] = vector<string> {params[i]};
-    }
-    
-    // =================================
-    
-    vector<vector<string>> results;
-    
+    vector<string> usedVariables;
+
     for (auto clause : subrule.clauses)
     {
         vector<vector<string>> clauseInputs;
         
+        // Get all parameters to be run through GetSet
+        // ======================================================================
         for (auto param : clause.parameters)
         {
             vector<string> parameterInputs;
             
+            // If PARAM is not a variable, use it as an input directly
+            if (!IsVariable(param))
+            {
+                parameterInputs.push_back(param);
+                clauseInputs.push_back(parameterInputs);
+                continue;
+            }
+
+            // If $PARAM has not been used yet, use the $ form as an input
             auto entry = nameMappings.find(param);
-            
             if ( entry == nameMappings.end() )
             {
                 parameterInputs.push_back(param);
@@ -119,13 +121,92 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                 continue;
             }
             
+            // If $PARAM has been used, use its candidate results as input
             parameterInputs = entry->second;
             clauseInputs.push_back(parameterInputs);
         }
+        // ======================================================================
         
         vector<vector<string>> clausePermutation = PermutateVector(clauseInputs);
         
+        vector<vector<string>> clauseResults;
+        for (auto i : clausePermutation)
+        {
+            auto temp = engine->GetSet(clause.name, i);
+            clauseResults.insert(end(clauseResults), begin(temp), end(temp));
+        }
+
+        // What to do with results of a Clause
+        // ======================================================================
+        for (int i = 0; i < clause.parameters.size(); ++i)
+        {
+            string param = clause.parameters[i];
+            
+            //cout << param << endl;
+            
+            // If PARAM is not a variable, ignore it
+            if (!IsVariable(param))
+            {
+                continue;
+            }
+            
+            vector<string> resultSet;
+            for (auto result : clauseResults)
+            {
+                resultSet.push_back(result[i]);
+            }
+            
+            auto entry = nameMappings.find(param);
+
+            // If $PARAM is not used, add the results directly
+            if ( entry == nameMappings.end() )
+            {
+                nameMappings[param] = resultSet;
+                continue;
+            }
+            
+            // If $PARAM is used, delete candidates not in result set
+            vector<string> & candidateSet = entry->second;
+            
+            auto iter = candidateSet.begin();
+            while(iter != candidateSet.end())
+            {
+                if(FindIndexOf(resultSet, iter[0]) == -1)
+                {
+                    int index = (int) (iter - candidateSet.begin());
+                    
+                    for (auto & entry : nameMappings)
+                    {
+                        if (entry.first != param)
+                        {
+                            entry.second.erase(entry.second.begin() + index);
+                        }
+                    }
+                    
+                    iter = candidateSet.erase(iter);
+                }
+                else ++iter;
+            }
+        }
+        // ======================================================================
+    }
+    
+    vector<vector<string>> results;
+    
+    for (int i = 0; i < params.size(); ++i)
+    {
+        vector<string> paramResults = nameMappings[params[i]];
         
+        if (i == 0)
+        {
+            for (auto result : paramResults)
+                results.push_back(vector<string> {result});
+        }
+        else
+        {
+            for (int k = 0; k < results.size(); ++k)
+                results[k].push_back(paramResults[k]);
+        }
     }
     
     return results;

@@ -113,9 +113,6 @@ void SRI::Infer(vector<string> input)
 
 vector<vector<string>> SRI::GetSet (string name, vector<string> params)
 {
-    vector<vector<string>> temp;
-    
-    
     vector<vector<string>> factResults = knowledgeBase.GetResultSet(name, params);
     vector<vector<string>> ruleResults = ruleBase.GetResultSet(name, params);
     vector<vector<string>> output;
