@@ -45,21 +45,38 @@ vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> p
         if (i.size() != params.size())
             continue;
         
-        bool isValidResult = true;
+        bool isValid = true;
+        unordered_map<string, string> usedParams;
         
         for (int k = 0; k < params.size(); ++k)
         {
             if (IsVariable(params[k]))
+            {
+                auto entry = usedParams.find(params[k]);
+                if (entry == usedParams.end())
+                {
+                    usedParams[params[k]] = i[k];
+                    continue;
+                }
+                string expectedResult = entry->second;
+                
+                if (i[k] != expectedResult)
+                {
+                    isValid = false;
+                    break;
+                }
+                
                 continue;
+            }
             
             if (params[k] != i[k])
             {
-                isValidResult = false;
+                isValid = false;
                 break;
             }
         }
         
-        if (isValidResult)
+        if (isValid)
             finalResults.push_back(i);
     }
     

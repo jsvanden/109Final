@@ -91,41 +91,54 @@ vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vect
 
 vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vector<string> params)
 {
-    unordered_map<string, vector<string>> nameMappings;
-    vector<string> usedVariables;
-
+    int currentParamIndex = 0;
+    unordered_map<string, int> paramToIndex;
+    vector<vector<string>> results;
+    
+    // FOR EACH CLAUSE
+    
     for (auto clause : subrule.clauses)
     {
-        vector<vector<string>> clauseInputs;
+        // =============================================
+        // GET ALL PERMUTATION OF INPUT FOR THIS CLAUSE
+        // =============================================
         
-        // Get all parameters to be run through GetSet
-        // ======================================================================
+        vector<vector<string>> clauseInputs;
+
+        // FOR EACH PARAMETER
+        
         for (auto param : clause.parameters)
         {
             vector<string> parameterInputs;
             
-            // If PARAM is not a variable, use it as an input directly
+            // IF PARAMETER IS NOT A VARIABLE, INPUT IT AS IS
+            
             if (!IsVariable(param))
             {
                 parameterInputs.push_back(param);
                 clauseInputs.push_back(parameterInputs);
                 continue;
             }
-
-            // If $PARAM has not been used yet, use the $ form as an input
-            auto entry = nameMappings.find(param);
-            if ( entry == nameMappings.end() )
+            
+            // IF PARAMETER HAS NOT YET BEEN USED IN PREV. CLAUSE, INPUT IT AS IS
+            
+            auto entry = paramToIndex.find(param);
+            if ( entry == paramToIndex.end() )
             {
                 parameterInputs.push_back(param);
                 clauseInputs.push_back(parameterInputs);
                 continue;
             }
             
-            // If $PARAM has been used, use its candidate results as input
-            parameterInputs = entry->second;
+            // IF PARAMETER HAS BEEN USED, USE THE RESULTS AS INPUT
+            
+            int paramIndex = entry->second;
+            
+            for (auto result : results)
+                parameterInputs.push_back(result[paramIndex]);
+            
             clauseInputs.push_back(parameterInputs);
         }
-        // ======================================================================
         
         vector<vector<string>> clausePermutation = PermutateVector(clauseInputs);
         
@@ -135,80 +148,199 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             auto temp = engine->GetSet(clause.name, i);
             clauseResults.insert(end(clauseResults), begin(temp), end(temp));
         }
-
-        // What to do with results of a Clause
-        // ======================================================================
+        
+        
+        vector<string> usedClauseParameters;
+        
         for (int i = 0; i < clause.parameters.size(); ++i)
         {
             string param = clause.parameters[i];
             
-            //cout << param << endl;
-            
-            // If PARAM is not a variable, ignore it
-            if (!IsVariable(param))
+            if (FindIndexOf(usedClauseParameters, param) == -1)
             {
+                usedClauseParameters.push_back(param);
                 continue;
             }
             
-            vector<string> resultSet;
-            for (auto result : clauseResults)
+            clause.parameters.erase(clause.parameters.begin() + i);
+            for (auto & result : clauseResults)
             {
-                resultSet.push_back(result[i]);
+                result.erase(result.begin() + i);
             }
             
-            auto entry = nameMappings.find(param);
-
-            // If $PARAM is not used, add the results directly
-            if ( entry == nameMappings.end() )
+            i--;
+        }
+        
+        // =============================================
+        //
+        // =============================================
+        
+        unordered_map<int, int> resultToClauseParam;
+        
+        // FOR EACH PARAMETER
+        
+        bool allNewParameters = true;
+        
+        for (int i=0; i<clause.parameters.size(); ++i)
+        {
+            string clauseParam = clause.parameters[i];
+            
+            // IF PARAMETER HAS NO ASSIGNED SPOT IN VECTOR,
+                // GIVE PARAMETER ASSIGNED SPORT IN VECTOR AND LINK VECTOR INDEX TO CLAUSE INDEX
+            
+            auto entry = paramToIndex.find(clauseParam);
+            if ( entry == paramToIndex.end() )
             {
-                nameMappings[param] = resultSet;
+                paramToIndex[clauseParam] = currentParamIndex;
+                resultToClauseParam[currentParamIndex] = i;
+                currentParamIndex++;
                 continue;
             }
             
-            // If $PARAM is used, delete candidates not in result set
-            vector<string> & candidateSet = entry->second;
+            // IF PARAMETER ALREADY HAS ASSIGNED SPOT IN VECTOR FROM PREV CLAUSE
+                // LINK ASSIGNED VECTOR INDEX TO CLAUSE INDEX
             
-            auto iter = candidateSet.begin();
-            while(iter != candidateSet.end())
+            int resultIndex = entry->second;
+            resultToClauseParam[resultIndex] = i;
+            allNewParameters = false;
+        }
+        
+        // IF CLAUSE CONTAINS ONLY NEW PARAMETERS
+        if (allNewParameters)
+        {
+            int candidateNumber = (int) results.size();
+            
+            // IF NO EXISTING CANDIDATES EXIST, SET THE CLAUSE RESULTS AS THE NEW CANDIDATES
+            
+            if (candidateNumber == 0)
             {
-                if(FindIndexOf(resultSet, iter[0]) == -1)
+                results = clauseResults;
+                continue;
+            }
+            
+            // IF CANDIDATES EXIST, PERMUTATE ALL EXISTING CANDIDATES WITH CLAUSE RESULTS
+            
+            else
+            {
+                vector<vector<string>> newResults;
+                
+                for (auto i : results)
                 {
-                    int index = (int) (iter - candidateSet.begin());
-                    
-                    for (auto & entry : nameMappings)
+                    for (auto k : clauseResults)
                     {
-                        if (entry.first != param)
+                        vector<string> newResult;
+                        newResult.reserve( i.size() + k.size());
+                        newResult.insert(newResult.end(), i.begin(), i.end());
+                        newResult.insert(newResult.end(), k.begin(), k.end());
+                        
+                        newResults.push_back(newResult);
+                    }
+                }
+                
+                results = newResults;
+                
+                continue;
+            }
+        }
+        
+        int resultSize = (int) results.size();
+        
+        // IF CLAUSE CONTAINS ALREADY DEFINED PARAMETERS, FOR EACH CANDIDATE RESULT
+        
+        for (int candidateIndex = 0; candidateIndex < resultSize; ++candidateIndex)
+        {
+            auto candidate = results[candidateIndex];
+            int candidateSize = (int) candidate.size();
+            
+            bool hasAnyMatch = false;
+
+            // FOR EACH NEW RESULT
+            
+            for (auto clauseResult : clauseResults)
+            {
+                bool resultIsMatch = true;
+                
+                // FOR EACH PARAMETER IN THE CANDIDATE RESULT
+                
+                for (int i=0; i<candidateSize; ++i)
+                {
+                    // IF THE PARAMETER IS NOT PART OF THE NEW RESULT, IGNORE IT
+                    
+                    auto entry = resultToClauseParam.find(i);
+                    if ( entry == resultToClauseParam.end() )
+                    {
+                        continue;
+                    }
+                    int index = entry->second;
+                    
+                    // IF THE VALUE OF THE PARAMETER IN THE CANDIDATE AND NEW RESULT ARE NOT THE SAME,
+                        // THE CANDIDATE RESULT AND TEH NEW RESULT ARE NOT A MATCH
+                    
+                    if (candidate[i] != clauseResult[index])
+                    {
+                        resultIsMatch = false;
+                        break;
+                    }
+                }
+                
+                // IF THE CANDIDATE RESULT IS A MATCH WITH THE NEW RESULT
+                
+                if (resultIsMatch)
+                {
+                    hasAnyMatch = true;
+                    
+                    // IF THIS IS THE CANDIDATE RESULT'S FIRST NEW MATCH.
+                        // APPEND THE NEW VALUES
+                    
+                    if (candidate.size() < currentParamIndex)
+                    {
+                        while (candidate.size() < currentParamIndex)
                         {
-                            entry.second.erase(entry.second.begin() + index);
+                            int clauseParameterIndex = (int) resultToClauseParam[candidate.size()];
+                            string newParameter = clauseResult[clauseParameterIndex];
+                            candidate.push_back(newParameter);
+                            results[candidateIndex] = candidate;
                         }
                     }
-                    
-                    iter = candidateSet.erase(iter);
+                    else
+                    {
+                        // ELSE DUPLICATE THIS VECTOR
+                        
+                        vector<string> newCandidate;
+                        
+                        for (int index = 0; index < candidateSize; ++index)
+                        {
+                            newCandidate.push_back(candidate[index]);
+                        }
+                        
+                        // APPEND THE NEW VALUES TO THE NEW VECTOR
+                        
+                        while (newCandidate.size() < currentParamIndex)
+                        {    
+                            int clauseParameterIndex = (int) resultToClauseParam[newCandidate.size()];
+                            string newParameter = clauseResult[clauseParameterIndex];
+                            newCandidate.push_back(newParameter);
+                        }
+
+                        results.push_back(newCandidate);
+                    }
                 }
-                else ++iter;
+            }
+            
+            // IF NONE OF THE NEW RESULTS MATCH THE CANDIDATE RESULT,
+                // DELETE THE CANDIDATE RESULT
+            
+            if (!hasAnyMatch)
+            {
+                results.erase(results.begin() + candidateIndex);
+                resultSize--;
+                candidateIndex--;
+                continue;
             }
         }
         // ======================================================================
     }
-    
-    vector<vector<string>> results;
-    
-    for (int i = 0; i < params.size(); ++i)
-    {
-        vector<string> paramResults = nameMappings[params[i]];
-        
-        if (i == 0)
-        {
-            for (auto result : paramResults)
-                results.push_back(vector<string> {result});
-        }
-        else
-        {
-            for (int k = 0; k < results.size(); ++k)
-                results[k].push_back(paramResults[k]);
-        }
-    }
-    
+
     return results;
 }
 

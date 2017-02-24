@@ -109,6 +109,15 @@ void SRI::Infer(vector<string> input)
             knowledgeBase.AddFact(outputFact, i);
         }
     }
+    
+    for (auto result : results)
+    {
+        for (auto i : result)
+        {
+            cout << i << " | ";
+        }
+        cout << endl;
+    }
 }
 
 vector<vector<string>> SRI::GetSet (string name, vector<string> params)

@@ -10,29 +10,39 @@ int main()
     
     SRI engine;
     
-    string fact = "FACT Father(Reggie,John)";
-    string fact2 = "FACT Father(Roger,Jp)";
-    string fact3 = "FACT Parent(Jp,road)";
-    string fact4 = "FACT Father(Lu,Jo)";
-    string fact5 = "FACT Parent(Jo,road2)";
+    string f1 = "FACT Father(Roger,Roger)";
+    string f3 = "FACT Father(Roger,Albert)";
+    string f5 = "FACT Father(Allen,Margret)";
     
-    string rule2 = "RULE PA($X,$Y):- OR Father($X,$Z) Parent($Z,$Y)";
-    string infer2 = "INFERENCE PA($X,$Y) P";
+    string f2 = "FACT Mother(Marry,John)";
+    string f4 = "FACT Mother(Marry,Albert)";
+    string f6 = "FACT Mother(Margret,Robert)";
+    string f7 = "FACT Mother(Margret,Bob)";
     
-    engine.InterpretLine(fact);
-    engine.InterpretLine(fact2);
-    engine.InterpretLine(fact3);
-    engine.InterpretLine(fact4);
-    engine.InterpretLine(fact5);
+    string r1 = "RULE Parent($X,$Y):- OR Father($X,$Y) Mother($X,$Y)";
+    string r2 = "RULE GrandFather($X,$Y):- AND Father($X,$Z) Parent($Z,$Y)";
+    string r3 = "RULE GrandMother($X,$Y):- AND Mother($X,$Z) Mother($X,$Y)";
+    string r4 = "RULE GrandMother($X,$Y):- AND Mother($X,$Z) Father($X,$Y)";
     
-    engine.InterpretLine(rule2);
+    string i1 = "INFERENCE Father($X,$Y)";
+    string i2 = "INFERENCE Parent($A,$B)";
+    string i3 = "INFERENCE GrandFather($A,$B)";
     
     
-    //cout << endl;
-    engine.InterpretLine(infer2);
-    //engine.InterpretLine(fact2);
-    //engine.InterpretLine(fact3);
-    //engine.InterpretLine(drop2);
+    engine.InterpretLine(f1);
+    engine.InterpretLine(f2);
+    engine.InterpretLine(f3);
+    engine.InterpretLine(f4);
+    engine.InterpretLine(f5);
+    engine.InterpretLine(f6);
+    engine.InterpretLine(f7);
+    
+    engine.InterpretLine(r1);
+    engine.InterpretLine(r2);
+    engine.InterpretLine(r3);
+    engine.InterpretLine(r4);
+    
+    engine.InterpretLine(i3);
     
     /*
     string input;
