@@ -346,32 +346,39 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
 
 void RuleBase::Export(ostream& file)
 {
-    file << "==== RULES ====" << endl;
+    // file << "==== RULES ====" << endl;
     
     for (auto rule : rules)
     {
-        file << rule.first << endl;
+        file << "RULE " << rule.first;
         
         for (auto subrule : rule.second)
         {
-            cout << "  | ";
-            for (auto param : subrule.parameters)
-            {
-                cout << param << " | ";
-            }
-            cout << endl;
             
-            cout << "  " << ((subrule.isAnd) ? "AND" : "OR") << endl;
+            file << "(";
+            // NOTE: could clean this up later to use an iterator
+            for (int i=0; i<subrule.parameters.size(); i++)
+            {
+                if( i != 0 ){ file << ","; }
+                file << subrule.parameters[i];
+            }
+            file << "):- ";
+            
+            file << ((subrule.isAnd) ? "AND" : "OR");
             
             for (auto clause : subrule.clauses)
             {
-                cout << "    " << clause.name << "  | ";
-                for (auto param : clause.parameters)
+                file << " " << clause.name << "(";
+                for (int i=0; i<clause.parameters.size(); i++)
                 {
-                    cout << param << " | ";
+                    if( i != 0 )
+                       file << ",";
+                    file << clause.parameters[i];
                 }
-                cout << endl;
+                file << ")";
             }
+            file << endl;
+            
         }
     }
     
