@@ -34,8 +34,6 @@ void SRI::InterpretLine(string& line)
     commandFunction->second(words);
 }
 
-
-
 // SRI Constructor
 SRI::SRI()
 {
