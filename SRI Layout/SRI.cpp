@@ -65,8 +65,6 @@ void SRI::Rule(vector<string> input)
     
     entry.parameters = firstClause.parameters;
     
-    // =========================
-    
     if (input[1] == "AND")
     {
         entry.isAnd = true;
@@ -78,8 +76,6 @@ void SRI::Rule(vector<string> input)
     else return;
     
     input.erase(input.begin() + 1);
-    
-    // =========================
 
     for (int i = 1; i < input.size(); ++i)
     {
