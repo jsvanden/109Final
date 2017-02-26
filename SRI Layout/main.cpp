@@ -10,6 +10,9 @@ int main()
     
     SRI engine;
     
+    string f1 = "FACT Father(Jo,1)";
+    
+    /*
     string f1 = "FACT Father(Roger,John)";
     string f3 = "FACT Father(Roger,Albert)";
     string f5 = "FACT Father(Allen,Margret)";
@@ -43,7 +46,7 @@ int main()
     engine.InterpretLine(r4);
     
     engine.InterpretLine(i3);
-    
+    */
     /*
     string input;
     while (getline(cin, input))
