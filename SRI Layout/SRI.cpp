@@ -7,6 +7,7 @@ using namespace std;
 using namespace std::placeholders;
 using namespace utility;
 
+//takes a line of input and determines which command/rule it is invoking
 void SRI::InterpretLine(string& line)
 {
     MakeValid(line);
@@ -21,6 +22,7 @@ void SRI::InterpretLine(string& line)
     commandFunction->second(words);
 }
 
+//creates a database with which to recognize each command
 SRI::SRI()
 {
     commands.insert(make_pair("LOAD", bind (&SRI::Load, this, _1)));
@@ -42,6 +44,7 @@ SRI::SRI()
 
 SRI::~SRI(){}
 
+//funtion definitions for each command
 void SRI::Drop(vector<string> input)
 {
     knowledgeBase.DropFact(input[0]);
@@ -156,6 +159,7 @@ void SRI::Infer(vector<string> input)
     }
 }
 
+//a recursively called function that enables inference to find a set of facts
 vector<vector<string>> SRI::GetSet (string name, vector<string> params)
 {
     vector<vector<string>> factResults = knowledgeBase.GetResultSet(name, params);
