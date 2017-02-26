@@ -1,0 +1,156 @@
+﻿// Example from Project Details
+FACT Father(Roger,John) 
+FACT Mother(Marry,John) 
+FACT Father(Roger,Albert) 
+FACT Mother(Marry,Albert) 
+FACT Father(Allen,Margret) 
+FACT Mother(Margret,Robert)
+FACT Mother(Margret,Bob) 
+RULE Parent($X,$Y):- OR Father($X,$Y) Mother($X,$Y) 
+RULE GrandFather($X,$Y):- AND Father($X,$Z) Parent($Z,$Y) 
+RULE GrandMother($X,$Y):- AND Mother($X,$Z) Mother($Z,$Y) 
+RULE GrandMother($X,$Y):- AND Mother($X,$Z) Father($Z,$Y) 
+INFERENCE GrandFather($X,$Y)         # prints the results on the terminal 
+INFERENCE GrandFather($X,$Y) GF # will declare the results under a fact with the name GF DROP GF # delete all the facts created by the previous inference statement 
+DROP Parent # delete the Parent rule 
+DUMP updated_family_relation.sri # generate a sri file of the current KB and RB
+// End of example
+
+________________
+Regular Test case:
+FACT Student (Jarrett, 1402)
+FACT Student (Bilbo, 1010)
+INFERENCE Student($X,1402)
+$X: Jarrett        $Y: 1402
+
+
+INFERENCE Student($X,$Y)
+$X: Jarrett        $Y: 1402
+$X: Bilbo        $Y: 1010
+
+
+INFERENCE Student ($X,$Y, John)
+N/A
+________________
+
+
+FACT Student(Kris, 3820)
+FACT Student(Jenny, 4001)
+FACT Student(Kyle, 4001)
+INFERENCER Student($X, 3802)
+$X: Kris        $Y: 3802
+
+
+INFERENCE Student(,$Y)
+N/A
+
+
+INFERENCE Student($X, $Y)
+$X: Kris        $Y: 3802
+$X: Jenny        $Y: 4001
+
+
+INFERENCE Student()
+N/A
+
+
+INFERENCE Student($X,  4001)
+$X: Jenny        $Y: 4001
+$X: Kyle        $Y: 4001
+
+
+INFERENCE Student($X, abc)
+N/A
+
+
+INFERENCE Student($X, $Y, Job)
+N/A
+
+
+FACT (Jarrett, 2001, Cashier)
+INFERENCE Student($X, $Y, $Z)
+$X: Nathan        $Y: 2001        $Z: Cashier
+
+
+________________
+
+
+FACT Professor(Karim, 7301)
+FACT Professor(Hunicke, 4001)
+FACT Professor(Hortice, 5335)
+FACT Student(Jenny, 3585)
+INFERENCE Professor(H, $Y)
+N/A
+
+
+INFERENCE Professor(Hunicke, $Y)
+$X: Hunicke        $Y: 4001
+
+
+________________
+
+
+RULE Class($X, $Y):- OR Student($X, 4001) Professor($X, 7301)
+RULE Class($X, $Y):- OR Student($X, 3585) Professor($X, 7301)
+INFERENCE Class(CMPS, $Y)
+N/A
+
+
+INFERENCE Class($X, 4001)
+$X: Hunicke        $Y: 4001
+$X: Jenny        $Y: 4001
+$X: Kyle        $Y: 4001
+
+
+INFERENCE Class($X, 7301)
+$X: Karim        $Y: 7301
+
+
+INFERENCE Class(Jenny, $Y)
+$X: Jenny        $Y: 4001
+$X: Jenny        $Y: 3585
+
+
+INFERENCE Class()
+N/A
+
+
+INFERENCE Class(Jenny,)
+N/A
+
+
+INFERENCE Class(David, 3540)
+N/A
+
+
+INFERENCE Class(Jenny, 4001, CMPS)
+ $X: Jenny        $Y: 4001        $Z: CMPS
+
+
+INFERENCE Class(Jenny, 3585, MCD:Biology)
+ $X: Jenny        $Y: 3585        $Z: MCD:Biology
+
+
+INFERENCE Class(Jenny, $Y, MCD:Biology)
+ $X: Jenny        $Y: 3585        $Z: MCD:Biology
+
+
+INFERENCE Class(Jenny, $Y, $Z)
+ $X: Jenny        $Y: 4001        $Z: CMPS
+ $X: Jenny        $Y: 3585        $Z: MCD:Biology
+
+
+INFERENCE Class($Y, $Z)
+N/A
+
+
+RULE School($X, $Y):- AND Student($X, 3802) Class(3802, $Y)
+INFERENCE School($X, CMPS)
+$X: Kris        $Y: CMPS
+
+
+RULE School($X, $Y):- AND Student($X, 4001) Class(4001, $Y)
+INFERENCE School($X, CMPS)
+$X: Hunicke        $Y: CMPS
+$X: Jenny        $Y: CMPS
+$X: Kyle        $Y: CMPS

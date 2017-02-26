@@ -43,3 +43,4 @@ public:
 };
 
 #endif
+/*defines the database of rules and their potential uses*/

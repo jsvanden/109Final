@@ -6,11 +6,13 @@
 using namespace std;
 using namespace utility;
 
+//removes a rule from the rule base
 void RuleBase::DropRule (string name)
 {
     rules.erase(name);
 }
 
+//adds a rule to the rule base
 void RuleBase::AddRule (string name, Subrule info)
 {
     auto ruleEntry = rules.find (name);
@@ -25,6 +27,7 @@ void RuleBase::AddRule (string name, Subrule info)
     }
 }
 
+//returns all rules that satisfy the given parameters
 vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params)
 {
     auto entry = rules.find(name);
@@ -61,6 +64,7 @@ vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params
     return results;
 }
 
+//subfunction of GetResultSet
 vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vector<string> params)
 {
     vector<vector<string>> results;
@@ -86,6 +90,7 @@ vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vect
     return results;
 }
 
+//subfunction of GetResultSet
 vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vector<string> params)
 {
     int currentParamIndex = 0;
@@ -399,6 +404,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
     return results;
 }
 
+//outputs the entire rule base as an OS stream for the Dump command and for debugging
 void RuleBase::Export(ostream& file)
 {
     for (auto rule : rules)
