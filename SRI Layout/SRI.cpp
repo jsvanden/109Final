@@ -136,15 +136,25 @@ void SRI::Infer(vector<string> input)
         return;
     }
     
+    vector<vector<string>> filteredResults;
+    
+    for (auto result : results)
+    {
+        if(find(filteredResults.begin(), filteredResults.end(), result) == filteredResults.end())
+        {
+            filteredResults.push_back(result);
+        }
+    }
+    
     if (outputFact != "")
     {
-        for (auto i : results)
+        for (auto i : filteredResults)
         {
             knowledgeBase.AddFact(outputFact, i);
         }
     }
     
-    for (auto result : results)
+    for (auto result : filteredResults)
     {
         for (int i=0; i<inference.parameters.size(); i++)
         {

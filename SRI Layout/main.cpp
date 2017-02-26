@@ -9,9 +9,21 @@ int main()
     //cout << "Begin!" << endl;
     
     SRI engine;
+    /*
+    string f1 = "FACT Fact(a,1)";
+    string f2 = "FACT Fact(a,1,ST)";
+    string r1 = "RULE Rule($X,$Y):- AND Fact($X,1) Fact($X,$Y,ST)";
     
-    string f1 = "FACT Father(Roger,John)";
-    string f3 = "FACT Father(Roger,Albert)";
+    string i1 = "INFERENCE Rule($X,$Y)";
+    
+    engine.InterpretLine(f1);
+    engine.InterpretLine(f2);
+    engine.InterpretLine(r1);
+    engine.InterpretLine(i1);
+    */
+    
+    string f1 = "FACT Father(Roger,Roger)";
+    string f3 = "FACT Father(Roger,Roger)";
     string f5 = "FACT Father(Allen,Margret)";
     
     string f2 = "FACT Mother(Marry,John)";

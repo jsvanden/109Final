@@ -6,12 +6,13 @@
 using namespace std;
 using namespace utility;
 
+//removes a rule from the rule base
 void RuleBase::DropRule (string name)
 {
     rules.erase(name);
-    Export(cout);
 }
 
+//adds a rule to the rule base
 void RuleBase::AddRule (string name, Subrule info)
 {
     auto ruleEntry = rules.find (name);
@@ -24,10 +25,9 @@ void RuleBase::AddRule (string name, Subrule info)
     {
         rules[name].push_back(info);
     }
-    
-    //Export(cout);
 }
 
+//returns all rules that satisfy the given parameters
 vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params)
 {
     auto entry = rules.find(name);
@@ -64,6 +64,7 @@ vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params
     return results;
 }
 
+//subfunction of GetResultSet
 vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vector<string> params)
 {
     vector<vector<string>> results;
@@ -89,6 +90,7 @@ vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vect
     return results;
 }
 
+//subfunction of GetResultSet
 vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vector<string> params)
 {
     int currentParamIndex = 0;
@@ -99,9 +101,9 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
     
     for (auto clause : subrule.clauses)
     {
-        // =============================================
-        // GET ALL PERMUTATION OF INPUT FOR THIS CLAUSE
-        // =============================================
+        // ============================================
+        // Get the possible inputs for the clause.
+        // ============================================
         
         vector<vector<string>> clauseInputs;
 
@@ -140,6 +142,10 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             clauseInputs.push_back(parameterInputs);
         }
         
+        // =============================================================
+        // Based on all possible inputs for the clause, get all results.
+        // =============================================================
+        
         vector<vector<string>> clausePermutation = PermutateVector(clauseInputs);
         
         vector<vector<string>> clauseResults;
@@ -149,12 +155,19 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             clauseResults.insert(end(clauseResults), begin(temp), end(temp));
         }
         
+        // ================================================================
+        // If the clause has no possible results, the subrule has none too.
+        // ================================================================
+        
         if (clauseResults.size() == 0)
         {
             vector<vector<string>> empty;
             return empty;
         }
         
+        // =========================================================
+        // Delete all duplicate parameters in results - ex. ($X,$X).
+        // =========================================================
         
         vector<string> usedClauseParameters;
         
@@ -177,7 +190,13 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             i--;
         }
         
-        unordered_map<int, int> resultToClauseParam;
+        // ======================================================================
+        // Map each paramter to a spot in the vector and vice-versa.
+        //    The $Z parameter in the clause result might be at a different index
+        //    than the $Z parameter in the candidate results.
+        // ======================================================================
+        
+        unordered_map<int, int> candidateToClauseIndex;
         
         // FOR EACH PARAMETER
         
@@ -194,7 +213,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             if ( entry == paramToIndex.end() )
             {
                 paramToIndex[clauseParam] = currentParamIndex;
-                resultToClauseParam[currentParamIndex] = i;
+                candidateToClauseIndex[currentParamIndex] = i;
                 currentParamIndex++;
                 continue;
             }
@@ -203,9 +222,16 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                 // LINK ASSIGNED VECTOR INDEX TO CLAUSE INDEX
             
             int resultIndex = entry->second;
-            resultToClauseParam[resultIndex] = i;
+            candidateToClauseIndex[resultIndex] = i;
             allNewParameters = false;
         }
+        
+        // =====================================================================================
+        // Handle if the clause and candidate results do not have matching parameters.
+        //   This happens on the first clause and on clauses with only new paramters.
+        //   EX. Clause1($X,$Y) Clause2($Y,$Z) Clause3($Q,$R)
+        //     [Clause1 and Clause3 have all new paramters]
+        // =====================================================================================
         
         // IF CLAUSE CONTAINS ONLY NEW PARAMETERS
         if (allNewParameters)
@@ -245,11 +271,19 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             }
         }
         
-        int resultSize = (int) candidates.size();
+        // ====================================================================
+        // Handle if the clause and candidate results have matching parameters.
+        // For each candidate, go through each new result:
+        //   If the candidate does not match any new clause result, delete it.
+        //   For each candidate does match a new clause result,
+        //                             permutate it with all the new parameters.
+        // ====================================================================
         
-        // IF CLAUSE CONTAINS ALREADY DEFINED PARAMETERS, FOR EACH CANDIDATE RESULT
+        int numberOfCandidates = (int) candidates.size();
         
-        for (int candidateIndex = 0; candidateIndex < resultSize; ++candidateIndex)
+        // FOR EACH CANDIDATE RESULT
+        
+        for (int candidateIndex = 0; candidateIndex < numberOfCandidates; ++candidateIndex)
         {
             auto candidate = candidates[candidateIndex];
             int candidateSize = (int) candidate.size();
@@ -268,8 +302,8 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                 {
                     // IF THE PARAMETER IS NOT PART OF THE NEW RESULT, IGNORE IT
                     
-                    auto entry = resultToClauseParam.find(i);
-                    if ( entry == resultToClauseParam.end() )
+                    auto entry = candidateToClauseIndex.find(i);
+                    if ( entry == candidateToClauseIndex.end() )
                     {
                         continue;
                     }
@@ -298,7 +332,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                     {
                         while (candidate.size() < currentParamIndex)
                         {
-                            int clauseParameterIndex = (int) resultToClauseParam[candidate.size()];
+                            int clauseParameterIndex = (int) candidateToClauseIndex[candidate.size()];
                             string newParameter = clauseResult[clauseParameterIndex];
                             candidate.push_back(newParameter);
                             candidates[candidateIndex] = candidate;
@@ -319,7 +353,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                         
                         while (newCandidate.size() < currentParamIndex)
                         {    
-                            int clauseParameterIndex = (int) resultToClauseParam[newCandidate.size()];
+                            int clauseParameterIndex = (int) candidateToClauseIndex[newCandidate.size()];
                             string newParameter = clauseResult[clauseParameterIndex];
                             newCandidate.push_back(newParameter);
                         }
@@ -335,18 +369,25 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             if (!hasAnyMatch)
             {
                 candidates.erase(candidates.begin() + candidateIndex);
-                resultSize--;
+                numberOfCandidates--;
                 candidateIndex--;
                 continue;
             }
         }
-        // ======================================================================
     }
+    
+    // =========================================================
+    // If there are no candidates left, return candidates
+    // =========================================================
 
     if (candidates.size() == 0)
     {
         return candidates;
     }
+    
+    // =========================================================
+    // Return only the paramters asked for my the subrule.
+    // =========================================================
     
     vector<vector<string>> results(candidates.size());
     
@@ -363,10 +404,9 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
     return results;
 }
 
+//outputs the entire rule base as an OS stream for the Dump command and for debugging
 void RuleBase::Export(ostream& file)
 {
-    // file << "==== RULES ====" << endl;
-    
     for (auto rule : rules)
     {
         file << "RULE " << rule.first;
