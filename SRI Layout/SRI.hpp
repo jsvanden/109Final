@@ -30,3 +30,5 @@ public:
 };
 
 #endif
+/*The main engine where a user can perform operations to manipulate and access the knowledge base
+  and rule base*/
