@@ -93,7 +93,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
 {
     int currentParamIndex = 0;
     unordered_map<string, int> paramToIndex;
-    vector<vector<string>> results;
+    vector<vector<string>> candidates;
     
     // FOR EACH CLAUSE
     
@@ -134,7 +134,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             
             int paramIndex = entry->second;
             
-            for (auto result : results)
+            for (auto result : candidates)
                 parameterInputs.push_back(result[paramIndex]);
             
             clauseInputs.push_back(parameterInputs);
@@ -147,6 +147,12 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
         {
             auto temp = engine->GetSet(clause.name, i);
             clauseResults.insert(end(clauseResults), begin(temp), end(temp));
+        }
+        
+        if (clauseResults.size() == 0)
+        {
+            vector<vector<string>> empty;
+            return empty;
         }
         
         
@@ -170,10 +176,6 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             
             i--;
         }
-        
-        // =============================================
-        //
-        // =============================================
         
         unordered_map<int, int> resultToClauseParam;
         
@@ -208,13 +210,13 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
         // IF CLAUSE CONTAINS ONLY NEW PARAMETERS
         if (allNewParameters)
         {
-            int candidateNumber = (int) results.size();
+            int candidateNumber = (int) candidates.size();
             
             // IF NO EXISTING CANDIDATES EXIST, SET THE CLAUSE RESULTS AS THE NEW CANDIDATES
             
             if (candidateNumber == 0)
             {
-                results = clauseResults;
+                candidates = clauseResults;
                 continue;
             }
             
@@ -224,7 +226,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             {
                 vector<vector<string>> newResults;
                 
-                for (auto i : results)
+                for (auto i : candidates)
                 {
                     for (auto k : clauseResults)
                     {
@@ -237,19 +239,19 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                     }
                 }
                 
-                results = newResults;
+                candidates = newResults;
                 
                 continue;
             }
         }
         
-        int resultSize = (int) results.size();
+        int resultSize = (int) candidates.size();
         
         // IF CLAUSE CONTAINS ALREADY DEFINED PARAMETERS, FOR EACH CANDIDATE RESULT
         
         for (int candidateIndex = 0; candidateIndex < resultSize; ++candidateIndex)
         {
-            auto candidate = results[candidateIndex];
+            auto candidate = candidates[candidateIndex];
             int candidateSize = (int) candidate.size();
             
             bool hasAnyMatch = false;
@@ -299,7 +301,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                             int clauseParameterIndex = (int) resultToClauseParam[candidate.size()];
                             string newParameter = clauseResult[clauseParameterIndex];
                             candidate.push_back(newParameter);
-                            results[candidateIndex] = candidate;
+                            candidates[candidateIndex] = candidate;
                         }
                     }
                     else
@@ -322,7 +324,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                             newCandidate.push_back(newParameter);
                         }
 
-                        results.push_back(newCandidate);
+                        candidates.push_back(newCandidate);
                     }
                 }
             }
@@ -332,7 +334,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
             
             if (!hasAnyMatch)
             {
-                results.erase(results.begin() + candidateIndex);
+                candidates.erase(candidates.begin() + candidateIndex);
                 resultSize--;
                 candidateIndex--;
                 continue;
@@ -341,6 +343,23 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
         // ======================================================================
     }
 
+    if (candidates.size() == 0)
+    {
+        return candidates;
+    }
+    
+    vector<vector<string>> results(candidates.size());
+    
+    for (auto param : subrule.parameters)
+    {
+        int paramIndex = paramToIndex[param];
+        
+        for (int i=0; i < candidates.size(); i++)
+        {
+            results[i].push_back(candidates[i][paramIndex]);
+        }
+    }
+    
     return results;
 }
 

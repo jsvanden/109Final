@@ -10,7 +10,7 @@ int main()
     
     SRI engine;
     
-    string f1 = "FACT Father(Roger,Roger)";
+    string f1 = "FACT Father(Roger,John)";
     string f3 = "FACT Father(Roger,Albert)";
     string f5 = "FACT Father(Allen,Margret)";
     

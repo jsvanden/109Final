@@ -102,6 +102,12 @@ void SRI::Infer(vector<string> input)
     
     vector<vector<string>> results = GetSet(inference.name, inference.parameters);
     
+    if (results.size() == 0)
+    {
+        cout << "NO RESULTS" << endl;
+        return;
+    }
+    
     if (outputFact != "")
     {
         for (auto i : results)
@@ -112,11 +118,16 @@ void SRI::Infer(vector<string> input)
     
     for (auto result : results)
     {
-        for (auto i : result)
+        for (int i=0; i<inference.parameters.size(); i++)
         {
-            cout << i << " | ";
+            string parameter = inference.parameters[i];
+            if (IsVariable(parameter))
+                parameter.erase(0, 1);
+            
+            string endString = (i == inference.parameters.size()-1) ? "\n" : ", ";
+            
+            cout << parameter << ":" << result[i] << endString;
         }
-        cout << endl;
     }
 }
 
