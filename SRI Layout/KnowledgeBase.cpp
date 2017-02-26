@@ -17,13 +17,11 @@ void KnowledgeBase::AddFact (string name, vector<string> params)
     {
         facts[name].push_back(params);
     }
-    //Export(cout);
 }
 
 void KnowledgeBase::DropFact (string name)
 {
     facts.erase(name);
-    //Export(cout);
 }
 
 vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> params)
@@ -85,11 +83,8 @@ vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> p
 
 void KnowledgeBase::Export(ostream& file)
 {
-    // file << "==== FACTS ====" << endl;
-    
     for (auto fact : facts)
     {
-        
         for (auto entry : fact.second)
         {
             file << "FACT " << fact.first << "(";
