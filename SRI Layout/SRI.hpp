@@ -1,3 +1,8 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * The class that client programs interact with through InterpretLine.   *
+ * Holds references to the Knowledge Base (facts) and Rule Base (rules). *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef SRI_hpp
 #define SRI_hpp
 
@@ -30,5 +35,3 @@ public:
 };
 
 #endif
-/*The main engine where a user can perform operations to manipulate and access the knowledge base
-  and rule base*/
