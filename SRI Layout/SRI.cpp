@@ -1,6 +1,7 @@
 #include "SRI.hpp"
 #include <iostream>
 #include "Utility.hpp"
+#include <fstream>
 
 using namespace std;
 using namespace std::placeholders;
@@ -87,12 +88,36 @@ void SRI::Rule(vector<string> input)
 
 void SRI::Save(vector<string> input)
 {
+    // Note: an updated version with error checking is coming soon
     string filePath = input[0];
+    ofstream outfile;
+    outfile.open( filePath );
+    
+    // load RuleBase and KnowledgeBase
+    ruleBase.Export( outfile );
+    knowledgeBase.Export( outfile );
+    
+    // close file
+    outfile.close();
 }
 
 void SRI::Load(vector<string> input)
 {
+    // Note: an updated version with error checking is coming soon
+    // open file for reading
     string filePath = input[0];
+    string line; // placeholder to run InterpretLine on
+    ifstream infile;
+    infile.open( filePath );
+    
+    // read each line and and add to SRI via InterpretLine
+    while( getline(infile, line) )
+    {
+       InterpretLine( line );
+    }
+    
+    // close files
+    infile.close();
 }
 
 void SRI::Infer(vector<string> input)
