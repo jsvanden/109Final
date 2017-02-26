@@ -16,3 +16,5 @@ namespace utility
 }
 
 #endif
+/*Utility file contains functions for parsing important information out of input strings
+  as well as a function for listing the available permutations of a given rule*/

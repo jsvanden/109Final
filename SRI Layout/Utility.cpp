@@ -7,6 +7,7 @@ using namespace std;
 
 namespace utility
 {
+    //checks if a character is among the accepted characters
     bool isValidChar(char c)
     {
         switch (c)
@@ -25,11 +26,13 @@ namespace utility
         }
     }
     
+    //removes a character if it is not among the accepted characters
     void MakeValid (string& input)
     {
         input.erase(remove_if(input.begin(), input.end(), [](char c){return !isValidChar(c);}), input.end());
     }
     
+    //parses a string input into a vector containing each word
     vector<string> StringToVector(string input, char delimiter)
     {
         vector<string> output;
@@ -47,6 +50,7 @@ namespace utility
         return output;
     }
     
+    //parses the name and parameters of a clause out of a string and forms them into a data structure
     Clause StringToClause(string input)
     {
         Clause output;
@@ -66,11 +70,13 @@ namespace utility
         return output;
     }
     
+    //returns true if a parameter is a variable
     bool IsVariable (string input)
     {
         return (input[0] == '$');
     }
     
+    //returns the index of an item in the vector
     int FindIndexOf (vector<string> vector, string value)
     {
         int result = (int) (find(vector.begin(), vector.end(), value) - vector.begin());
@@ -78,6 +84,7 @@ namespace utility
         return (result == vector.size()) ? -1 : result;
     }
     
+    //runs through each clause and returns every possible permutation that satisfies a given rule
     vector<vector<string>> PermutateVector (vector<vector<string>> input)
     {
         vector<vector<string>> output2;
