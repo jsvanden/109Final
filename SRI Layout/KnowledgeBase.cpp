@@ -85,22 +85,22 @@ vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> p
 
 void KnowledgeBase::Export(ostream& file)
 {
-    file << "==== FACTS ====" << endl;
+    // file << "==== FACTS ====" << endl;
     
     for (auto fact : facts)
     {
-        file << fact.first << ": | ";
         
         for (auto entry : fact.second)
         {
-            for (auto set : entry)
+            file << "FACT " << fact.first << "(";
+            for (int i=0; i < entry.size(); i++)
             {
-                file << set << " ";
+                if( i!=0 ){ file << ","; }
+                file << entry[i];
             }
-            file << "| ";
+            file << ")" << endl;
         }
         
-        file << endl;
     }
 }
 
