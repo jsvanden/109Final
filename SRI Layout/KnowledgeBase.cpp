@@ -5,6 +5,7 @@
 using namespace std;
 using namespace utility;
 
+//adds a fact to the knowledge base
 void KnowledgeBase::AddFact (string name, vector<string> params)
 {
     auto factEntry = facts.find (name);
@@ -20,12 +21,14 @@ void KnowledgeBase::AddFact (string name, vector<string> params)
     //Export(cout);
 }
 
+//removes a fact from the knowledge base
 void KnowledgeBase::DropFact (string name)
 {
     facts.erase(name);
     //Export(cout);
 }
 
+//returns all the facts that satisfy the given parameters
 vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> params)
 {
     auto result = facts.find(name);
@@ -83,6 +86,7 @@ vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> p
     return finalResults;
 }
 
+//outputs the entire knowledge base as an OS stream for the dump command; also used for debugging
 void KnowledgeBase::Export(ostream& file)
 {
     // file << "==== FACTS ====" << endl;
