@@ -180,7 +180,7 @@ bool SRI::Save(vector<string> input)
 // Called by LOAD; Adds the contents of a file to this SRI's RuleBase and KnowledgeBase
 //      Returns true on a successful load, false otherwise
 //      Will only load files with ".sri" extension; returns false if not ".sri"
-void SRI::Load(vector<string> input)
+bool SRI::Load(vector<string> input)
 {
     string filePath = input[0];
     string line;
