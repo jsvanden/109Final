@@ -128,38 +128,108 @@ void SRI::Rule(vector<string> input)
     ruleBase.AddRule(firstClause.name, entry);
 }
 
-void SRI::Save(vector<string> input)
+// Called by DUMP; Saves the KnowledgeBase and RuleBase to an external file, formatted to Interpret
+//      Returns true on a successful save, false otherwise
+bool SRI::Save(vector<string> input)
 {
-    // Note: an updated version with error checking is coming soon
     string filePath = input[0];
     ofstream outfile;
-    outfile.open( filePath );
     
-    // load RuleBase and KnowledgeBase
-    ruleBase.Export( outfile );
-    knowledgeBase.Export( outfile );
+    //=========================================
+    // Ensure created file has ".sri" extension
+    // ========================================
     
-    // close file
-    outfile.close();
-}
-
-void SRI::Load(vector<string> input)
-{
-    // Note: an updated version with error checking is coming soon
-    // open file for reading
-    string filePath = input[0];
-    string line; // placeholder to run InterpretLine on
-    ifstream infile;
-    infile.open( filePath );
-    
-    // read each line and and add to SRI via InterpretLine
-    while( getline(infile, line) )
+    int extensionIdx = filePath.find_last_of('.');
+   
+    if( extensionIdx == -1)
     {
-       InterpretLine( line );
+       filePath += ".sri";
+       // cout << "   Adding \".sri\" extension to \"" << filePath << "\"\n";
+    }
+    else if( filePath.substr(extensionIdx) != ".sri")
+    {
+       filePath += ".sri";
+       // cout << "   Adding \".sri\" extension to \"" << filePath << "\"\n";
     }
     
-    // close files
-    infile.close();
+    // ============================
+    // Save contents of SRI to file
+    // ============================
+    
+    outfile.open( filePath );
+    
+    if( outfile.is_open() )
+    {
+       // load RuleBase and KnowledgeBase
+       ruleBase.Export( outfile );
+       knowledgeBase.Export( outfile );
+      
+       // close file
+       outfile.close();
+       // cout << "Successful DUMP of file \"" << filePath << "\"\n";
+       return true;
+    }
+    else     // if the file failed to open for writing
+    {
+       cerr << "SRI Error: could not DUMP file \"" << filePath << "\"\n";
+       return false;
+    }
+    
+}
+
+// Called by LOAD; Adds the contents of a file to this SRI's RuleBase and KnowledgeBase
+//      Returns true on a successful load, false otherwise
+//      Will only load files with ".sri" extension; returns false if not ".sri"
+void SRI::Load(vector<string> input)
+{
+    string filePath = input[0];
+    string line;
+    ifstream infile;
+    
+    // =======================================================
+    // Ensure that ONLY files with extension ".sri" are loaded
+    // =======================================================
+    
+    int extensionIdx = filePath.find_last_of('.');
+    if( extensionIdx == -1)
+    {
+       cerr << "LOAD Error: infile must have extension \".sri\"" << endl;
+       cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
+       return false;
+    }
+    else if( filePath.substr(extensionIdx) != ".sri")
+    {
+       cerr << "LOAD Error: infile must have extension \".sri\"" << endl;
+       cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
+       return false;
+    }
+    
+    // =============================================================
+    // Open file for reading and add its contents, or print an error
+    // =============================================================
+    
+    infile.open( filePath );
+    
+    if( infile.is_open() )
+    {
+    
+       // load input via SRI's InterpretLine
+       while( getline(infile, line) )
+       {
+           InterpretLine( line );
+       }
+       
+       infile.close();
+       // cout << "Successful LOAD of file \"" << filePath << "\"\n";
+       return true;
+    }
+    // if the file could not be opened, print message and return false
+    else
+    {
+       cerr << "LOAD Error: could not LOAD from file \"" << filePath << "\"\n";
+       return false;
+    }
+    
 }
 
 void SRI::Infer(vector<string> input)
