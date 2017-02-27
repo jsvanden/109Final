@@ -1,3 +1,7 @@
+/* * * * * * * * * * * * * * * * * *
+ * Defines the database of rules.  *
+ * * * * * * * * * * * * * * * * * */
+
 #ifndef RuleBase_hpp
 #define RuleBase_hpp
 
@@ -43,4 +47,3 @@ public:
 };
 
 #endif
-/*defines the database of rules and their potential uses*/

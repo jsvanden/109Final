@@ -1,3 +1,7 @@
+/* * * * * * * * * * * * * * * * * * * *
+ * Defines the database of all facts.  *
+ * * * * * * * * * * * * * * * * * * * */
+
 #ifndef KnowledgeBase_hpp
 #define KnowledgeBase_hpp
 
@@ -22,4 +26,3 @@ public:
 };
 
 #endif
-/*file that defines the database of all facts and their potential uses*/

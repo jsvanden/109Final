@@ -1,3 +1,9 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Utility file contains functions for parsing important information     *
+ *   from input strings, function for listing the available permutations *
+ *   of a given rule.                                                    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef Utility_hpp
 #define Utility_hpp
 
