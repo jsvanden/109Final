@@ -116,7 +116,7 @@ void SRI::Rule(vector<string> input)
     // Add all clauses after AND/OR to the subrule data structure.
     // ===========================================================
     
-    for (int i = 2; i < input.size(); ++i)
+    for (int i = 2; i < (int)input.size(); ++i)
     {
         entry.clauses.push_back( StringToClause(input[i]) );
     }
@@ -289,13 +289,13 @@ void SRI::Infer(vector<string> input)
     
     for (auto result : filteredResults)
     {
-        for (int i=0; i<inference.parameters.size(); i++)
+        for (int i=0; i < (int)inference.parameters.size(); i++)
         {
             string parameter = inference.parameters[i];
             if (IsVariable(parameter))
                 parameter.erase(0, 1);
             
-            string endString = (i == inference.parameters.size()-1) ? "\n" : ", ";
+            string endString = (i == (int)inference.parameters.size()-1) ? "\n" : ", ";
             
             cout << parameter << ":" << result[i] << endString;
         }
