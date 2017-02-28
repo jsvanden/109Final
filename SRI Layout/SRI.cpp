@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Utility.hpp"
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 using namespace std::placeholders;
