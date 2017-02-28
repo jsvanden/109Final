@@ -171,7 +171,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
         
         vector<string> usedClauseParameters;
         
-        for (int i = 0; i < clause.parameters.size(); ++i)
+        for (int i = 0; i < (int)clause.parameters.size(); ++i)
         {
             string param = clause.parameters[i];
             
@@ -202,7 +202,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
         
         bool allNewParameters = true;
         
-        for (int i=0; i<clause.parameters.size(); ++i)
+        for (int i=0; i<(int)clause.parameters.size(); ++i)
         {
             string clauseParam = clause.parameters[i];
             
@@ -328,9 +328,9 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                     // IF THIS IS THE CANDIDATE RESULT'S FIRST NEW MATCH.
                         // APPEND THE NEW VALUES
                     
-                    if (candidate.size() < currentParamIndex)
+                    if ( (int)candidate.size() < currentParamIndex)
                     {
-                        while (candidate.size() < currentParamIndex)
+                        while ( (int)candidate.size() < currentParamIndex)
                         {
                             int clauseParameterIndex = (int) candidateToClauseIndex[candidate.size()];
                             string newParameter = clauseResult[clauseParameterIndex];
@@ -351,7 +351,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
                         
                         // APPEND THE NEW VALUES TO THE NEW VECTOR
                         
-                        while (newCandidate.size() < currentParamIndex)
+                        while ( (int)newCandidate.size() < currentParamIndex)
                         {    
                             int clauseParameterIndex = (int) candidateToClauseIndex[newCandidate.size()];
                             string newParameter = clauseResult[clauseParameterIndex];
@@ -395,7 +395,7 @@ vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vec
     {
         int paramIndex = paramToIndex[param];
         
-        for (int i=0; i < candidates.size(); i++)
+        for (int i=0; i < (int)candidates.size(); i++)
         {
             results[i].push_back(candidates[i][paramIndex]);
         }
@@ -415,8 +415,7 @@ void RuleBase::Export(ostream& file)
         {
             
             file << "(";
-            // NOTE: could clean this up later to use an iterator
-            for (int i=0; i<subrule.parameters.size(); i++)
+            for (int i=0; i < (int)subrule.parameters.size(); i++)
             {
                 if( i != 0 ){ file << ","; }
                 file << subrule.parameters[i];
@@ -428,7 +427,7 @@ void RuleBase::Export(ostream& file)
             for (auto clause : subrule.clauses)
             {
                 file << " " << clause.name << "(";
-                for (int i=0; i<clause.parameters.size(); i++)
+                for (int i=0; i < (int)clause.parameters.size(); i++)
                 {
                     if( i != 0 )
                        file << ",";
