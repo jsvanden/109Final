@@ -49,7 +49,7 @@ vector<vector<string>> KnowledgeBase::GetResultSet(string name, vector<string> p
         bool isValid = true;
         unordered_map<string, string> usedParams;
         
-        for (int k = 0; k < params.size(); ++k)
+        for (int k = 0; k < (int)params.size(); ++k)
         {
             if (IsVariable(params[k]))
             {
@@ -92,7 +92,7 @@ void KnowledgeBase::Export(ostream& file)
         for (auto entry : fact.second)
         {
             file << "FACT " << fact.first << "(";
-            for (int i=0; i < entry.size(); i++)
+            for (int i=0; i < (int)entry.size(); i++)
             {
                 if( i!=0 ){ file << ","; }
                 file << entry[i];
