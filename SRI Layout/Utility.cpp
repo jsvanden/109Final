@@ -18,6 +18,8 @@ namespace utility
             case ')':
             case ',':
             case ' ':
+            case '.':
+            case '/':
                 return true;
             default:
                 if (!isalnum(c))
@@ -81,7 +83,7 @@ namespace utility
     {
         int result = (int) (find(vector.begin(), vector.end(), value) - vector.begin());
         
-        return (result == vector.size()) ? -1 : result;
+        return (result == (int)vector.size()) ? -1 : result;
     }
     
     //runs through each clause and returns every possible permutation that satisfies a given rule
@@ -91,11 +93,11 @@ namespace utility
         
         int outputSize = 0;
         
-        for (int k=0; k < input.size(); ++k)
+        for (int k=0; k < (int)input.size(); ++k)
         {
             int permutationSize = (int) input[k].size();
             
-            for (int i = k+1; i < input.size(); ++i)
+            for (int i = k+1; i < (int)input.size(); ++i)
             {
                 permutationSize *= input[i].size();
             }
