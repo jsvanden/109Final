@@ -76,6 +76,14 @@ namespace utility
         
         vector<string> params = StringToVector(paramString, ',');
         
+        int commaCount = (int) count(paramString.begin(), paramString.end(), ',');
+        
+        if (params.size() != (commaCount+1))
+        {
+            output.name = "";
+            return output;
+        }
+        
         for (auto i : params)
             output.parameters.push_back(i);
         
