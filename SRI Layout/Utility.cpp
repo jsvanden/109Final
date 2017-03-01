@@ -20,6 +20,7 @@ namespace utility
             case ' ':
             case '.':
             case '/':
+            case '\':
                 return true;
             default:
                 if (!isalnum(c))
