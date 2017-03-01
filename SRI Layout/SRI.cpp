@@ -31,7 +31,7 @@ void SRI::InterpretLine(string& line)
     auto commandFunction = commands.find (words[0]);
     if ( commandFunction == commands.end() )
     {
-        cerr << "No Matching Command" << endl;
+        cerr << "SRI ERROR: no matching command" << endl;
         return;
     }
     
@@ -44,7 +44,7 @@ void SRI::InterpretLine(string& line)
     // No parameters
     if (words.size() == 0)
     {
-        cerr << "Invalid Parameters" << endl;
+        cerr << "SRI ERROR: no command parameters" << endl;
         return;
     }
     
@@ -105,7 +105,7 @@ void SRI::Fact(vector<string> input)
     
     if (fact.name == "")
     {
-        cerr << "Invalid Input" << endl;
+        cerr << "FACT ERROR: invalid input" << endl;
         return;
     }
     
@@ -123,7 +123,7 @@ void SRI::Rule(vector<string> input)
     
     if (firstClause.name == "")
     {
-        cerr << "Invalid Input" << endl;
+        cerr << "RULE ERROR: invalid input" << endl;
         return;
     }
     
@@ -141,11 +141,21 @@ void SRI::Rule(vector<string> input)
     {
         entry.isAnd = false;
     }
-    else return;
+    else
+    {
+        cerr << "RULE ERROR: invalid input" << endl;
+        return;
+    }
     
     // ===========================================================
     // Add all clauses after AND/OR to the subrule data structure.
     // ===========================================================
+    
+    if (input.size() < 3)
+    {
+        cerr << "RULE ERROR: invalid input" << endl;
+        return;
+    }
     
     for (int i = 2; i < (int)input.size(); ++i)
     {
@@ -153,7 +163,7 @@ void SRI::Rule(vector<string> input)
         
         if (firstClause.name == "")
         {
-            cerr << "Invalid Input" << endl;
+            cerr << "RULE ERROR: invalid input" << endl;
             return;
         }
         
@@ -210,7 +220,7 @@ bool SRI::Save(vector<string> input)
     }
     else     // if the file failed to open for writing
     {
-       cerr << "SRI Error: could not DUMP file \"" << filePath << "\"\n";
+       cerr << "SAVE ERROR: could not DUMP file \"" << filePath << "\"\n";
        return false;
     }
     
@@ -232,13 +242,13 @@ bool SRI::Load(vector<string> input)
     int extensionIdx = filePath.find_last_of('.');
     if( extensionIdx == -1)
     {
-       cerr << "LOAD Error: infile must have extension \".sri\"" << endl;
+       cerr << "LOAD ERROR: infile must have extension \".sri\"" << endl;
        cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
        return false;
     }
     else if( filePath.substr(extensionIdx) != ".sri")
     {
-       cerr << "LOAD Error: infile must have extension \".sri\"" << endl;
+       cerr << "LOAD ERROR: infile must have extension \".sri\"" << endl;
        cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
        return false;
     }
@@ -265,7 +275,7 @@ bool SRI::Load(vector<string> input)
     // if the file could not be opened, print message and return false
     else
     {
-       cerr << "LOAD Error: could not LOAD from file \"" << filePath << "\"\n";
+       cerr << "LOAD ERROR: could not LOAD from file \"" << filePath << "\"\n";
        return false;
     }
     
@@ -281,7 +291,7 @@ void SRI::Infer(vector<string> input)
     
     if (inference.name == "")
     {
-        cerr << "Invalid Input" << endl;
+        cerr << "INFERENCE ERROR: invalid input" << endl;
         return;
     }
     
