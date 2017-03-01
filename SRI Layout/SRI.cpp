@@ -17,6 +17,11 @@ void SRI::InterpretLine(string& line)
     // ==============================================================
     
     MakeValid(line);
+    
+    // if line was only invalid or whitespace, stop processing
+    if ( line == ""){  return; }
+    else if( line.find_first_not_of(' ') >= line.length() ){ return; }
+    
     vector<string> words = StringToVector(line, ' ');
     
     // ===========================================================================
