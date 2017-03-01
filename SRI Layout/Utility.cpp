@@ -59,9 +59,19 @@ namespace utility
         
         vector<string> words = StringToVector(input, '(');
         
+        if (words.size() == 1)
+            return output;
+        
         output.name = words[0];
         
         string paramString = words[1];
+        
+        if (paramString[paramString.size()-1] != ')')
+        {
+            output.name = "";
+            return output;
+        }
+        
         paramString.erase( paramString.size() - 1 );
         
         vector<string> params = StringToVector(paramString, ',');

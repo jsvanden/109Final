@@ -30,13 +30,24 @@ void SRI::InterpretLine(string& line)
     
     auto commandFunction = commands.find (words[0]);
     if ( commandFunction == commands.end() )
+    {
+        cerr << "No Matching Command" << endl;
         return;
+    }
     
     // ===============================================================================
     // Delete first word of input string, send the rest to the corresponding function.
     // ===============================================================================
     
     words.erase(words.begin());
+    
+    // No parameters
+    if (words.size() == 0)
+    {
+        cerr << "Invalid Parameters" << endl;
+        return;
+    }
+    
     commandFunction->second(words);
 }
 
@@ -91,6 +102,13 @@ void SRI::Fact(vector<string> input)
     // ===============================
     
     Clause fact = StringToClause(input[0]);
+    
+    if (fact.name == "")
+    {
+        cerr << "Invalid Input" << endl;
+        return;
+    }
+    
     knowledgeBase.AddFact(fact.name, fact.parameters);
 }
 
@@ -102,6 +120,13 @@ void SRI::Rule(vector<string> input)
     
     Subrule entry;
     Clause firstClause = StringToClause(input[0]);
+    
+    if (firstClause.name == "")
+    {
+        cerr << "Invalid Input" << endl;
+        return;
+    }
+    
     entry.parameters = firstClause.parameters;
     
     // ==========================================
@@ -124,7 +149,15 @@ void SRI::Rule(vector<string> input)
     
     for (int i = 2; i < (int)input.size(); ++i)
     {
-        entry.clauses.push_back( StringToClause(input[i]) );
+        Clause nextClause = StringToClause(input[i]);
+        
+        if (firstClause.name == "")
+        {
+            cerr << "Invalid Input" << endl;
+            return;
+        }
+        
+        entry.clauses.push_back( nextClause );
     }
     
     // ===================================================
@@ -245,6 +278,13 @@ void SRI::Infer(vector<string> input)
     // ====================================================
     
     Clause inference = StringToClause(input[0]);
+    
+    if (inference.name == "")
+    {
+        cerr << "Invalid Input" << endl;
+        return;
+    }
+    
     string outputFact = (input.size() > 1) ? input[1] : "";
     
     // =========================
