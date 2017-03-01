@@ -19,8 +19,8 @@ void SRI::InterpretLine(string& line)
     MakeValid(line);
     
     // if line was only invalid or whitespace, stop processing
-    if ( line == ""){  return; }
-    else if( line.find_first_not_of(' ') >= line.length() ){ return; }
+    if ( line == "" || line.find_first_not_of(' ') >= line.length())
+        return;
     
     vector<string> words = StringToVector(line, ' ');
     
@@ -30,10 +30,7 @@ void SRI::InterpretLine(string& line)
     
     auto commandFunction = commands.find (words[0]);
     if ( commandFunction == commands.end() )
-    {
-        cerr << "SRI ERROR: no matching command" << endl;
-        return;
-    }
+        throw SRIException("SRI", "no matching command");
     
     // ===============================================================================
     // Delete first word of input string, send the rest to the corresponding function.
@@ -43,10 +40,7 @@ void SRI::InterpretLine(string& line)
     
     // No parameters
     if (words.size() == 0)
-    {
-        cerr << "SRI ERROR: no command parameters" << endl;
-        return;
-    }
+        throw SRIException("SRI", "no command parameters");
     
     commandFunction->second(words);
 }
@@ -101,13 +95,18 @@ void SRI::Fact(vector<string> input)
     // Add fact to the knowledge base.
     // ===============================
     
-    Clause fact = StringToClause(input[0]);
+    Clause fact;
     
-    if (fact.name == "")
+    try
     {
-        cerr << "FACT ERROR: invalid input" << endl;
-        return;
+        fact = StringToClause(input[0]);
     }
+    catch (SRIException s)
+    {
+        s.SetLocation("FACT");
+        throw s;
+    }
+    
     
     knowledgeBase.AddFact(fact.name, fact.parameters);
 }
@@ -119,13 +118,19 @@ void SRI::Rule(vector<string> input)
     // =============================
     
     Subrule entry;
-    Clause firstClause = StringToClause(input[0]);
     
-    if (firstClause.name == "")
+    Clause firstClause;
+    
+    try
     {
-        cerr << "RULE ERROR: invalid input" << endl;
-        return;
+        firstClause = StringToClause(input[0]);
     }
+    catch (SRIException s)
+    {
+        s.SetLocation("RULE");
+        throw s;
+    }
+    
     
     entry.parameters = firstClause.parameters;
     
@@ -141,11 +146,7 @@ void SRI::Rule(vector<string> input)
     {
         entry.isAnd = false;
     }
-    else
-    {
-        cerr << "RULE ERROR: invalid input" << endl;
-        return;
-    }
+    else throw SRIException("RULE", "no AND / OR specified");
     
     // ===========================================================
     // Add all clauses after AND/OR to the subrule data structure.
@@ -153,18 +154,21 @@ void SRI::Rule(vector<string> input)
     
     if (input.size() < 3)
     {
-        cerr << "RULE ERROR: invalid input" << endl;
-        return;
+        throw SRIException("RULE", "invalid number of rule parameters");
     }
     
     for (int i = 2; i < (int)input.size(); ++i)
     {
-        Clause nextClause = StringToClause(input[i]);
+        Clause nextClause;
         
-        if (firstClause.name == "")
+        try
         {
-            cerr << "RULE ERROR: invalid input" << endl;
-            return;
+            nextClause = StringToClause(input[i]);
+        }
+        catch (SRIException s)
+        {
+            s.SetLocation("RULE");
+            throw s;
         }
         
         entry.clauses.push_back( nextClause );
@@ -179,7 +183,7 @@ void SRI::Rule(vector<string> input)
 
 // Called by DUMP; Saves the KnowledgeBase and RuleBase to an external file, formatted to Interpret
 //      Returns true on a successful save, false otherwise
-bool SRI::Save(vector<string> input)
+void SRI::Save(vector<string> input)
 {
     string filePath = input[0];
     ofstream outfile;
@@ -188,17 +192,11 @@ bool SRI::Save(vector<string> input)
     // Ensure created file has ".sri" extension
     // ========================================
     
-    int extensionIdx = filePath.find_last_of('.');
+    int extensionIdx = (int) filePath.find_last_of('.');
    
-    if( extensionIdx == -1)
+    if( extensionIdx == -1 || filePath.substr(extensionIdx) != ".sri")
     {
        filePath += ".sri";
-       // cout << "   Adding \".sri\" extension to \"" << filePath << "\"\n";
-    }
-    else if( filePath.substr(extensionIdx) != ".sri")
-    {
-       filePath += ".sri";
-       // cout << "   Adding \".sri\" extension to \"" << filePath << "\"\n";
     }
     
     // ============================
@@ -215,21 +213,15 @@ bool SRI::Save(vector<string> input)
       
        // close file
        outfile.close();
-       // cout << "Successful DUMP of file \"" << filePath << "\"\n";
-       return true;
     }
-    else     // if the file failed to open for writing
-    {
-       cerr << "SAVE ERROR: could not DUMP file \"" << filePath << "\"\n";
-       return false;
-    }
-    
+    // if the file failed to open for writing
+    else throw SRIException("SAVE", "could not DUMP file\"" + filePath + "\"\n");
 }
 
 // Called by LOAD; Adds the contents of a file to this SRI's RuleBase and KnowledgeBase
 //      Returns true on a successful load, false otherwise
 //      Will only load files with ".sri" extension; returns false if not ".sri"
-bool SRI::Load(vector<string> input)
+void SRI::Load(vector<string> input)
 {
     string filePath = input[0];
     string line;
@@ -239,18 +231,10 @@ bool SRI::Load(vector<string> input)
     // Ensure that ONLY files with extension ".sri" are loaded
     // =======================================================
     
-    int extensionIdx = filePath.find_last_of('.');
-    if( extensionIdx == -1)
+    int extensionIdx = (int) filePath.find_last_of('.');
+    if( extensionIdx == -1 || filePath.substr(extensionIdx) != ".sri")
     {
-       cerr << "LOAD ERROR: infile must have extension \".sri\"" << endl;
-       cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
-       return false;
-    }
-    else if( filePath.substr(extensionIdx) != ".sri")
-    {
-       cerr << "LOAD ERROR: infile must have extension \".sri\"" << endl;
-       cerr << "   Could not LOAD from file \"" << filePath << "\"\n";
-       return false;
+       throw SRIException("LOAD", "infile must have extension \".sri\"");
     }
     
     // =============================================================
@@ -269,15 +253,9 @@ bool SRI::Load(vector<string> input)
        }
        
        infile.close();
-       // cout << "Successful LOAD of file \"" << filePath << "\"\n";
-       return true;
     }
     // if the file could not be opened, print message and return false
-    else
-    {
-       cerr << "LOAD ERROR: could not LOAD from file \"" << filePath << "\"\n";
-       return false;
-    }
+    else throw SRIException("LOAD", "could not LOAD from file \"" + filePath + "\"\n");
     
 }
 
@@ -287,12 +265,16 @@ void SRI::Infer(vector<string> input)
     // Get Inference name and output fact name (if exists).
     // ====================================================
     
-    Clause inference = StringToClause(input[0]);
+    Clause inference;
     
-    if (inference.name == "")
+    try
     {
-        cerr << "INFERENCE ERROR: invalid input" << endl;
-        return;
+        inference = StringToClause(input[0]);
+    }
+    catch (SRIException s)
+    {
+        s.SetLocation("INFERENCE");
+        throw s;
     }
     
     string outputFact = (input.size() > 1) ? input[1] : "";

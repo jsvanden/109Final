@@ -21,8 +21,8 @@ private:
     void Drop(ListOfWords input);
     void Fact(ListOfWords input);
     void Rule(ListOfWords input);
-    bool Save(ListOfWords input);
-    bool Load(ListOfWords input);
+    void Save(ListOfWords input);
+    void Load(ListOfWords input);
     void Infer(ListOfWords input);
 
     std::unordered_map< std::string, std::function<void(ListOfWords)> > commands;

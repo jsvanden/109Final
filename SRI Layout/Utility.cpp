@@ -1,13 +1,12 @@
 #include "Utility.hpp"
 #include <sstream>
-#include <iostream>
 #include <algorithm>
 
 using namespace std;
 
 namespace utility
 {
-    //checks if a character is among the accepted characters
+    // Checks if a character is among the accepted characters.
     bool isValidChar(char c)
     {
         switch (c)
@@ -28,13 +27,13 @@ namespace utility
         }
     }
     
-    //removes a character if it is not among the accepted characters
+    // Removes a character if it is not among the accepted characters.
     void MakeValid (string& input)
     {
         input.erase(remove_if(input.begin(), input.end(), [](char c){return !isValidChar(c);}), input.end());
     }
     
-    //parses a string input into a vector containing each word
+    // Parses a string input into a vector containing each word.
     vector<string> StringToVector(string input, char delimiter)
     {
         vector<string> output;
@@ -52,33 +51,38 @@ namespace utility
         return output;
     }
     
-    //parses the name and parameters of a clause out of a string and forms them into a data structure
+    // Parses the name and parameters of a clause out of a string and forms them into a data structure.
     Clause StringToClause(string input)
     {
         Clause output;
         
-        vector<string> words = StringToVector(input, '(');
-        
-        if (words.size() == 1)
-            return output;
-        
-        output.name = words[0];
-        
-        string paramString = words[1];
-        
-        int parenLCount = (int) count(paramString.begin(), paramString.end(), '(');
-        int parenRCount = (int) count(paramString.begin(), paramString.end(), ')');
+        int parenLCount = (int) count(input.begin(), input.end(), '(');
+        int parenRCount = (int) count(input.begin(), input.end(), ')');
         
         if (parenLCount != 1 || parenRCount != 1)
         {
-            output.name = "";
-            return output;
+            throw SRIException("StringToClause", "incorrect number of parenthesis in clause");
         }
+        
+        vector<string> words = StringToVector(input, '(');
+        
+        if (words.size() == 1)
+        {
+            throw SRIException("StringToClause", "misplaced parenthesis in clause");
+        }
+        
+        output.name = words[0];
+        
+        if (output.name == "")
+        {
+            throw SRIException("StringToClause", "no clause name");
+        }
+        
+        string paramString = words[1];
         
         if (paramString[paramString.size()-1] != ')')
         {
-            output.name = "";
-            return output;
+            throw SRIException("StringToClause", "clause does not end with parenthesis");
         }
         
         paramString.erase( paramString.size() - 1 );
@@ -87,10 +91,9 @@ namespace utility
         
         int commaCount = (int) count(paramString.begin(), paramString.end(), ',');
         
-        if (params.size() != (commaCount+1))
+        if ((int) params.size() != (commaCount+1))
         {
-            output.name = "";
-            return output;
+            throw SRIException("StringToClause", "misplaced comma in clause");
         }
         
         for (auto i : params)
@@ -99,13 +102,13 @@ namespace utility
         return output;
     }
     
-    //returns true if a parameter is a variable
+    // Returns true if a parameter is a variable.
     bool IsVariable (string input)
     {
         return (input[0] == '$');
     }
     
-    //returns the index of an item in the vector
+    // Returns the index of an item in the vector.
     int FindIndexOf (vector<string> vector, string value)
     {
         int result = (int) (find(vector.begin(), vector.end(), value) - vector.begin());
@@ -113,7 +116,7 @@ namespace utility
         return (result == (int)vector.size()) ? -1 : result;
     }
     
-    //runs through each clause and returns every possible permutation that satisfies a given rule
+    // Runs through each clause and returns every possible permutation that satisfies a given rule.
     vector<vector<string>> PermutateVector (vector<vector<string>> input)
     {
         vector<vector<string>> output2;
@@ -143,6 +146,26 @@ namespace utility
         }
         
         return output2;
+    }
+    
+    // SRI Exception constructor.
+    SRIException::SRIException (string location, string message)
+    {
+        m_location = location;
+        m_message = message;
+    }
+    
+    // SRI Exception alter location.
+    void SRIException::SetLocation (std::string newLocation)
+    {
+        m_location = newLocation;
+    }
+    
+    // SRI Exception throwing.
+    const char* SRIException::what()
+    {
+        string output = m_location + " ERROR: " + m_message + "\n";
+        return output.c_str();
     }
 }
 

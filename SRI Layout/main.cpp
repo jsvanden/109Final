@@ -3,6 +3,7 @@
 #include "Utility.hpp"
 
 using namespace std;
+using namespace utility;
 
 int main()
 {
@@ -16,7 +17,14 @@ int main()
         if (input == "x")
             break;
         
-        engine.InterpretLine(input);
+        try
+        {
+            engine.InterpretLine(input);
+        }
+        catch (SRIException s)
+        {
+            cout << s.what();
+        }
     }
     
     cout << "SRI ENGINE END" << endl;
