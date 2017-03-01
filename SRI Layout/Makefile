@@ -1,11 +1,14 @@
 # CS109 quarter project
-# simple makefile, creates the executable "sri_test"
+# simple makefile, creates the executable "sri_phase2”
 SOURCES		= KnowledgeBase.cpp RuleBase.cpp SRI.cpp Utility.cpp main.cpp
 HEADERS		= KnowledgeBase.hpp RuleBase.hpp SRI.hpp Utility.hpp
 OBJECTS		= KnowledgeBase.o RuleBase.o SRI.o Utility.o main.o
-EXEBIN		= sri_test
+EXEBIN		= sri_phase2
+TESTEXEBIN	= sri_test
 FLAGS		= -std=gnu++11
 WARNING_FLAGS	= -std=gnu++11 -Wall
+
+##########################
 
 all : $(EXEBIN)
 
@@ -15,11 +18,23 @@ $(EXEBIN) : $(OBJECTS) $(HEADERS)
 $(OBJECTS) : $(SOURCES) $(HEADERS)
 	g++ -c $(WARNING_FLAGS) $(SOURCES)
 
+run :
+	make all
+	./$(EXEBIN)
+
+##########################
+
+test :
+
+##########################
+
 clean :
 	rm -f $(EXEBIN) $(OBJECTS)
 
 clean_files :
 	rm -f *.sri
+
+##########################
 
 check :
 	valgrind --leak-check=full $(EXEBIN)

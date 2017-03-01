@@ -1,6 +1,6 @@
 // Unit Tests //
 
-/*#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
 #include "SRI.hpp"
@@ -17,4 +17,4 @@ TEST_CASE( "Factorials are computed", "[factorial]" )
     REQUIRE( Factorial(2) == 2 );
     REQUIRE( Factorial(3) == 6 );
     REQUIRE( Factorial(10) == 3628800 );
-}*/
+}
