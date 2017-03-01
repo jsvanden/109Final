@@ -66,6 +66,15 @@ namespace utility
         
         string paramString = words[1];
         
+        int parenLCount = (int) count(paramString.begin(), paramString.end(), '(');
+        int parenRCount = (int) count(paramString.begin(), paramString.end(), ')');
+        
+        if (parenLCount != 1 || parenRCount != 1)
+        {
+            output.name = "";
+            return output;
+        }
+        
         if (paramString[paramString.size()-1] != ')')
         {
             output.name = "";
