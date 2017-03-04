@@ -17,6 +17,7 @@ class KnowledgeBase
     
 private:
     std::unordered_map<FactName, ListOfSets> facts;
+    std::vector<std::string> FilterResult(std::vector<std::string> result, std::string name, FactParams params);
     
 public:
     ListOfSets GetResultSet(FactName name, FactParams params);

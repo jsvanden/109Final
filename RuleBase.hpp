@@ -38,6 +38,7 @@ private:
     std::unordered_map<RuleName, ListOfSubrules> rules;
     ListOfSets GetResultsOR(Subrule subrule, std::string name, std::vector<std::string> params);
     ListOfSets GetResultsAND(Subrule subrule, std::string name, std::vector<std::string> params);
+    ListOfSets GetResultsClause (Clause clause, Subrule subrule, std::vector<std::string> params);
     
 public:
     ListOfSets GetResultSet(RuleName name, std::vector<std::string> params);

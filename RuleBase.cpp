@@ -1,7 +1,8 @@
-#include "RuleBase.hpp"
-#include <iostream>
 #include "Utility.hpp"
 #include "SRI.hpp"
+
+#include <iostream>
+#include <future>
 
 using namespace std;
 using namespace utility;
@@ -67,26 +68,41 @@ vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params
 //subfunction of GetResultSet
 vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vector<string> params)
 {
-    vector<vector<string>> results;
+    typedef vector<vector<string>> ClauseResults;
+    
+    ClauseResults results;
+    
+    vector<future<ClauseResults>> futures;
     
     for (auto clause : subrule.clauses)
     {
-        vector<string> inputs;
-        
-        for (auto i : clause.parameters)
-        {
-            int index = FindIndexOf(subrule.parameters, i);
-            
-            if(index == -1)
-                inputs.push_back(i);
-            else
-                inputs.push_back(params[index]);
-        }
-        
-        vector<vector<string>> clauseSet = engine->GetSet(clause.name, inputs);
-        results.insert(end(results), begin(clauseSet), end(clauseSet));
+        futures.push_back (std::async(&RuleBase::GetResultsClause, (this), clause, subrule, params));
     }
     
+    for(auto &e : futures)
+    {
+        ClauseResults result = e.get();
+        results.insert(end(results), begin(result), end(result));
+    }
+    
+    return results;
+}
+
+vector<vector<string>> RuleBase::GetResultsClause (Clause clause, Subrule subrule, vector<string> params)
+{
+    vector<string> inputs;
+    
+    for (auto i : clause.parameters)
+    {
+        int index = FindIndexOf(subrule.parameters, i);
+        
+        if(index == -1)
+            inputs.push_back(i);
+        else
+            inputs.push_back(params[index]);
+    }
+    
+    vector<vector<string>> results = engine->GetSet(clause.name, inputs);
     return results;
 }
 
