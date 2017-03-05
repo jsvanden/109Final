@@ -4,11 +4,11 @@
 
 using namespace std;
 using namespace utility;
-/*
+
 int main()
 {
     SRI engine;
-    
+
     cout << endl << "SRI ENGINE START" << endl << endl;
     
     string input;
@@ -28,7 +28,7 @@ int main()
     }
     
     cout << endl << "SRI ENGINE END" << endl << endl;
-    
+ 
     return 0;
 }
-*/
+

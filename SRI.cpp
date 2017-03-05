@@ -8,49 +8,47 @@ using namespace std;
 using namespace std::placeholders;
 using namespace utility;
 
+// ==================================================================================
+// INTERPRET LINE
+//     -Takes a string of input and invokes its corresponding function.
+// ==================================================================================
 
-// Takes a line of input and determines which command/rule it is invoking.
 void SRI::InterpretLine(string& line)
 {
-    // ==============================================================
     // Remove invlaid characters and seperate input string by spaces.
-    // ==============================================================
-    
     MakeValid(line);
     
-    // if line was only invalid or whitespace, stop processing
+    // If line is empty or only whitespace, stop processing.
     if ( line == "" || line.find_first_not_of(' ') >= line.length())
         return;
-    
+
+    // Split filtered input string by spaces.
     vector<string> words = StringToVector(line, ' ');
     
-    // ===========================================================================
-    // If first word of input string is not a recognized command, stop processing.
-    // ===========================================================================
-    
+    // If first word of input string is not a recognized command, throw an error.
     auto commandFunction = commands.find (words[0]);
     if ( commandFunction == commands.end() )
         throw SRIException("SRI", "no matching command");
     
-    // ===============================================================================
-    // Delete first word of input string, send the rest to the corresponding function.
-    // ===============================================================================
-    
+    // Delete first word of input string (the command).
     words.erase(words.begin());
     
-    // No parameters
+    // If there are no parameters after the command name, throw an error.
     if (words.size() == 0)
         throw SRIException("SRI", "no command parameters");
     
+    // Call the command's corresponding function.
     commandFunction->second(words);
 }
 
-// SRI Constructor
+// ==================================================================================
+// SRI CONSTRUCTOR
+//     -Set up variables within SRI.
+// ==================================================================================
+
 SRI::SRI()
 {
-    // ==================================================
-    // Link command string to its corresponsing function.
-    // ==================================================
+    // Link each command string to its corresponsing function.
     
     commands.insert(make_pair("LOAD", bind (&SRI::Load, this, _1)));
     commands.insert(make_pair("DUMP", bind (&SRI::Save, this, _1)));
@@ -66,39 +64,31 @@ SRI::SRI()
     commands.insert(make_pair("i", bind (&SRI::Infer, this, _1)));
     commands.insert(make_pair("d", bind (&SRI::Drop, this, _1)));
     
-    // ===============================================================================
+    
     // Give the rule base a reference to the SRI engine to allow inference recurrence.
-    // ===============================================================================
-    
+
     ruleBase.engine = (this);
-    
-    // ===============================================================================
-    // Intialize output
-    // ===============================================================================
 }
 
-SRI::~SRI(){} // SRI Destructor
 
-
-// Funtion definitions for each command ---------------------------------------------
+// ==================================================================================
+// DROP
+//     -Removes facts and rules from the SRI engine.
+// ==================================================================================
 
 
 void SRI::Drop(vector<string> input)
 {
-    // =============================================
-    // Remove input string from all facts and rules.
-    // =============================================
-    
     knowledgeBase.DropFact(input[0]);
     ruleBase.DropRule(input[0]);
 }
+// ==================================================================================
+// FACT
+//     -Adds a fact the SRI engine.
+// ==================================================================================
 
 void SRI::Fact(vector<string> input)
 {
-    // ===============================
-    // Add fact to the knowledge base.
-    // ===============================
-    
     Clause fact;
     
     try
@@ -111,19 +101,20 @@ void SRI::Fact(vector<string> input)
         throw s;
     }
     
-    
     knowledgeBase.AddFact(fact.name, fact.parameters);
 }
 
+// ==================================================================================
+// FACT
+//     -Adds a rule the SRI engine.
+// ==================================================================================
+
 void SRI::Rule(vector<string> input)
 {
-    // =============================
-    // Get rule name and parameters.
-    // =============================
-    
     Subrule entry;
-    
     Clause firstClause;
+    
+    // Get the rule's name and parameters.
     
     try
     {
@@ -142,9 +133,8 @@ void SRI::Rule(vector<string> input)
     
     entry.parameters = firstClause.parameters;
     
-    // ==========================================
-    // Determine if rule is an AND or an OR rule.
-    // ==========================================
+    
+    // Determine if the rule is an AND or an OR rule.
     
     if (input[1] == "AND")
     {
@@ -155,10 +145,9 @@ void SRI::Rule(vector<string> input)
         entry.isAnd = false;
     }
     else throw SRIException("RULE", "no AND / OR specified");
+
     
-    // ===========================================================
     // Add all clauses after AND/OR to the subrule data structure.
-    // ===========================================================
     
     for (int i = 2; i < (int)input.size(); ++i)
     {
@@ -177,23 +166,23 @@ void SRI::Rule(vector<string> input)
         entry.clauses.push_back( nextClause );
     }
     
-    // ===================================================
+    
     // Add the rule (rulename + subrule) to the Rule Base.
-    // ===================================================
     
     ruleBase.AddRule(firstClause.name, entry);
 }
 
-// Called by DUMP; Saves the KnowledgeBase and RuleBase to an external file, formatted to Interpret
-//      Returns true on a successful save, false otherwise
+// ==================================================================================
+// SAVE (DUMP)
+//     -Writes the SRI engine's facts and rules to a file.
+// ==================================================================================
+
 void SRI::Save(vector<string> input)
 {
     string filePath = input[0];
     ofstream outfile;
     
-    //=========================================
-    // Ensure created file has ".sri" extension
-    // ========================================
+    // Ensure created file has ".sri" extension.
     
     int extensionIdx = (int) filePath.find_last_of('.');
    
@@ -202,37 +191,36 @@ void SRI::Save(vector<string> input)
        filePath += ".sri";
     }
     
-    // ============================
-    // Save contents of SRI to file
-    // ============================
+    // Save contents of SRI to the file.
     
     outfile.open( filePath );
     
     if( outfile.is_open() )
     {
-       // load RuleBase and KnowledgeBase
+       // Call the saving subfunctions in both Rule and Knowledge Base.
        ruleBase.Export( outfile );
        knowledgeBase.Export( outfile );
       
-       // close file
+       // Close file.
        outfile.close();
     }
-    // if the file failed to open for writing
+    
+    // If the file failed to open, throw an error.
     else throw SRIException("SAVE", "could not DUMP file\"" + filePath + "\"");
 }
 
-// Called by LOAD; Adds the contents of a file to this SRI's RuleBase and KnowledgeBase
-//      Returns true on a successful load, false otherwise
-//      Will only load files with ".sri" extension; returns false if not ".sri"
+// ==================================================================================
+// LOAD
+//     -Loads facts and rules from a file, into the SRI engine.
+// ==================================================================================
+
 void SRI::Load(vector<string> input)
 {
     string filePath = input[0];
     string line;
     ifstream infile;
-    
-    // =======================================================
-    // Ensure that ONLY files with extension ".sri" are loaded
-    // =======================================================
+
+    // Ensure that ONLY files with extension ".sri" are loaded.
     
     int extensionIdx = (int) filePath.find_last_of('.');
     if( extensionIdx == -1 || filePath.substr(extensionIdx) != ".sri")
@@ -240,16 +228,13 @@ void SRI::Load(vector<string> input)
        throw SRIException("LOAD", "infile must have extension \".sri\"");
     }
     
-    // =============================================================
-    // Open file for reading and add its contents, or print an error
-    // =============================================================
+    // Open file for reading and add its contents, or print an error.
     
     infile.open( filePath );
     
     if( infile.is_open() )
     {
-    
-       // load input via SRI's InterpretLine
+       // Load input via SRI's InterpretLine.
        while( getline(infile, line) )
        {
            InterpretLine( line );
@@ -257,18 +242,22 @@ void SRI::Load(vector<string> input)
        
        infile.close();
     }
-    // if the file could not be opened, print message and return false
+    
+    // If the file could not be opened, throw an error.
     else throw SRIException("LOAD", "could not LOAD from file \"" + filePath + "\"");
     
 }
 
+// ==================================================================================
+// INFER
+//     -Determines and prints the results of an inference.
+// ==================================================================================
+
 void SRI::Infer(vector<string> input)
 {
-    // ====================================================
-    // Get Inference name and output fact name (if exists).
-    // ====================================================
-    
     Clause inference;
+    
+    // Get Inference name and output fact name (if exists).
     
     try
     {
@@ -282,25 +271,19 @@ void SRI::Infer(vector<string> input)
     
     string outputFact = (input.size() > 1) ? input[1] : "";
     
-    // =========================
-    // Get results of inference.
-    // =========================
+    // Get the results of the inference.
     
     vector<vector<string>> results = GetSet(inference.name, inference.parameters);
     
-    // ======================================
-    // If there are no results, return empty.
-    // ======================================
+    // If there are no results, notify the client and return.
     
     if (results.size() == 0)
     {
         cout << "NO RESULTS" << endl;
         return;
     }
-    
-    // =========================
-    // Remove duplicate results.
-    // =========================
+
+    // Otherwise, remove duplicate results.
     
     vector<vector<string>> filteredResults;
     
@@ -328,9 +311,7 @@ void SRI::Infer(vector<string> input)
         }
     }
     
-    // ==============================================================
     // If an output fact is specified, add the results as a new fact.
-    // ==============================================================
     
     if (outputFact != "")
     {
@@ -340,9 +321,7 @@ void SRI::Infer(vector<string> input)
         }
     }
     
-    // ==========================
     // Print results!
-    // ==========================
     
     for (auto result : filteredResults)
     {
@@ -359,20 +338,22 @@ void SRI::Infer(vector<string> input)
     }
 }
 
+// ==================================================================================
+// (?) : GetSet
+//     -A recursively called function that enables inference to work.
+//     -Called from both SRI and RuleBase
+// ==================================================================================
+
 // A recursively called function that enables inference to find a set of facts.
 vector<vector<string>> SRI::GetSet (string name, vector<string> params)
 {
-    // =============================================
     // Get all facts and rules that match the input.
-    // =============================================
     
     vector<vector<string>> factResults = knowledgeBase.GetResultSet(name, params);
     vector<vector<string>> ruleResults = ruleBase.GetResultSet(name, params);
     vector<vector<string>> output;
-    
-    // ==============================================
+
     // Combine the fact results and the rule results.
-    // ==============================================
     
     output.reserve( factResults.size() + ruleResults.size() );
     output.insert( output.end(), factResults.begin(), factResults.end() );

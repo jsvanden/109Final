@@ -7,49 +7,70 @@
 using namespace std;
 using namespace utility;
 
-//removes a rule from the rule base
+// ==================================================================================
+// DROP RULE
+//     -Removes a rule from the RuleBase.
+// ==================================================================================
+
 void RuleBase::DropRule (string name)
 {
+    // Remove rule from (rule name -> rule subrules) dictionary.
     rules.erase(name);
 }
 
-//adds a rule to the rule base
+// ==================================================================================
+// ADD RULE
+//     -Adds a rule from the RuleBase.
+// ==================================================================================
+
 void RuleBase::AddRule (string name, Subrule info)
 {
     auto ruleEntry = rules.find (name);
-    
+ 
+    // If RuleBase does not contain the 'name' rule, create it.
     if ( ruleEntry == rules.end() )
     {
         rules[name] = vector<Subrule> {info};
+        return;
     }
+    // If RuleBase does contain the 'name' rule, append to it.
     else
     {
         rules[name].push_back(info);
     }
 }
 
-//returns all rules that satisfy the given parameters
+// ==================================================================================
+// GET RESULT SET
+//     -Returns all values that satisfy the parameters of a given rule.
+// ==================================================================================
+
 vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params)
 {
     auto entry = rules.find(name);
     
+    // If RuleBase does not contain the 'name' rule, return empty.
     if ( entry == rules.end() )
     {
         vector<vector<string>> empty;
         return empty;
     }
     
-    vector<vector<string>> results;
-    
+    // If RuleBase does contain the 'name' rule, get its subrules.
     vector<Subrule> subrules = entry->second;
     
+    vector<vector<string>> results;
+    
+    // For each subrule...
     for (auto subrule : subrules)
     {
+        // If the # of subrule parameters does not match the # of parameters inputed, skip this subrule.
         if (subrule.parameters.size() != params.size())
             continue;
         
         vector<vector<string>> subruleResults;
         
+        // Depending on whether AND or OR was specified, call the corresponding subfunction.
         if (subrule.isAnd)
         {
             subruleResults = GetResultsAND(subrule, name, params);
@@ -59,26 +80,32 @@ vector<vector<string>> RuleBase::GetResultSet(string name, vector<string> params
             subruleResults = GetResultsOR(subrule, name, params);
         }
         
+        // Add the results of the subrule query to the total results.
         results.insert(end(results), begin(subruleResults), end(subruleResults));
     }
     
     return results;
 }
 
-//subfunction of GetResultSet
+// ==================================================================================
+// (GET RESULT SET) : GetResultsOR
+//     -Subfunction of GetResultSet called if the subrule uses an OR.
+// ==================================================================================
+
 vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vector<string> params)
 {
     typedef vector<vector<string>> ClauseResults;
-    
     ClauseResults results;
-    
+
     vector<future<ClauseResults>> futures;
     
+    // For each clause, launch a seperate thread getting the results of that clause.
     for (auto clause : subrule.clauses)
     {
         futures.push_back (std::async(&RuleBase::GetResultsClause, (this), clause, subrule, params));
     }
     
+    // Wait for each clause thread to finish and merge the results.
     for(auto &e : futures)
     {
         ClauseResults result = e.get();
@@ -88,348 +115,224 @@ vector<vector<string>> RuleBase::GetResultsOR(Subrule subrule, string name, vect
     return results;
 }
 
+
+// ==================================================================================
+// ((GET RESULT SET)) : (GetResultsOR) : Get Results Clause
+//     -Thread for GetResultsOR to calculate an individual clause.
+// ==================================================================================
 vector<vector<string>> RuleBase::GetResultsClause (Clause clause, Subrule subrule, vector<string> params)
 {
     vector<string> inputs;
     
+    // For each clause parameter...
     for (auto i : clause.parameters)
     {
         int index = FindIndexOf(subrule.parameters, i);
         
+        // If the user did not specify a value for this parameter, use it as is.
         if(index == -1)
             inputs.push_back(i);
+        
+        // Otherwise, use the value that the user specified.
         else
             inputs.push_back(params[index]);
     }
     
+    // Recursively get the results for this individual clause.
+    // Recursion continues when the clause is another rule.
+    // Recursion terminates when the clause is a fact or non-existent.
     vector<vector<string>> results = engine->GetSet(clause.name, inputs);
+    
     return results;
 }
 
-//subfunction of GetResultSet
+
+// ==================================================================================
+// (GET RESULT SET) : GetResultsAND
+//     -Subfunction of GetResultSet called if the subrule uses an AND.
+// ==================================================================================
+
 vector<vector<string>> RuleBase::GetResultsAND(Subrule subrule, string name, vector<string> params)
 {
-    int currentParamIndex = 0;
-    unordered_map<string, int> paramToIndex;
-    vector<vector<string>> candidates;
+    // Start a recursive call to pipeline results into each AND clause.
+    vector<ParamValueMap> resultMaps = ProcessResults(subrule, 0, ParamValueMap());
     
-    // FOR EACH CLAUSE
+    // We must translate the vector of dictionary results into a vector of vector results.
+    vector<vector<string>> resultVectors;
     
-    for (auto clause : subrule.clauses)
+    // For each map...
+    for (auto resultMap : resultMaps)
     {
-        // ============================================
-        // Get the possible inputs for the clause.
-        // ============================================
+        vector<string> newVector;
         
-        vector<vector<string>> clauseInputs;
+        // For each parameter.
+        for (auto param : subrule.parameters)
+        {
+            auto entry = resultMap.find(param);
+            
+            // If the result has no value for this parameter, push 'ANY' as the value.
+            if (entry == resultMap.end())
+            {
+                newVector.push_back("ANY");
+                continue;
+            }
+            
+            // Otherwise, push the mapped result as the value.
+            newVector.push_back(entry->second);
+        }
+        
+        // Add the new vector to the result vectors.
+        resultVectors.push_back(newVector);
+    }
+    
+    return resultVectors;
+}
 
-        // FOR EACH PARAMETER
+// ==================================================================================
+// ((GET RESULT SET)) : (GetResultsAND) : ProcessResults
+//     -Thread for GetResultsAND to pipeline a result into the next clause.
+// ==================================================================================
+
+typedef unordered_map<string, string> ParamValueMap;
+vector<ParamValueMap> RuleBase::ProcessResults(Subrule subrule, int clauseNumber, ParamValueMap inResult)
+{
+    Clause currentClause = subrule.clauses[clauseNumber];
+    
+    vector<ParamValueMap> newResults;
+    
+    // If we are on the first clause...
+    if (clauseNumber == 0)
+    {
+        // Recursively get the results for this individual clause.
+        // Recursion continues when the clause is another rule.
+        // Recursion terminates when the clause is a fact or non-existent.
+        auto clauseResults = engine->GetSet(currentClause.name, currentClause.parameters);
         
-        for (auto param : clause.parameters)
+        // For each result, translate the vector results into dictionary results.
+        for (auto clauseResult : clauseResults)
         {
-            vector<string> parameterInputs;
+            ParamValueMap newResult;
             
-            // IF PARAMETER IS NOT A VARIABLE, INPUT IT AS IS
-            
-            if (!IsVariable(param))
+            // For each parameter...
+            for (int i=0; i < currentClause.parameters.size(); i++)
             {
-                parameterInputs.push_back(param);
-                clauseInputs.push_back(parameterInputs);
+                // Map the parameter string to the results, value string.
+                string parameter = currentClause.parameters[i];
+                string value = clauseResult[i];
+                
+                newResult[parameter] = value;
+            }
+            
+            newResults.push_back(newResult);
+        }
+    }
+    
+    // If we are not on the first clause...
+    else
+    {
+        vector<string> inputsToClause;
+        
+        // For each parameter...
+        for (auto param : currentClause.parameters)
+        {
+            auto entry = inResult.find(param);
+            
+            // If the parameter is a variable or a new parameter, insert as is.
+            if (!IsVariable(param) || entry == inResult.end() )
+            {
+                inputsToClause.push_back(param);
                 continue;
             }
             
-            // IF PARAMETER HAS NOT YET BEEN USED IN PREV. CLAUSE, INPUT IT AS IS
-            
-            auto entry = paramToIndex.find(param);
-            if ( entry == paramToIndex.end() )
-            {
-                parameterInputs.push_back(param);
-                clauseInputs.push_back(parameterInputs);
-                continue;
-            }
-            
-            // IF PARAMETER HAS BEEN USED, USE THE RESULTS AS INPUT
-            
-            int paramIndex = entry->second;
-            
-            for (auto result : candidates)
-                parameterInputs.push_back(result[paramIndex]);
-            
-            clauseInputs.push_back(parameterInputs);
+            // If the parameter is already mapped to a result, insert the mapped value.
+            inputsToClause.push_back(entry->second);
         }
         
-        // =============================================================
-        // Based on all possible inputs for the clause, get all results.
-        // =============================================================
+        // Recursively get the results for this individual clause.
+        // Recursion continues when the clause is another rule.
+        // Recursion terminates when the clause is a fact or non-existent.
+        auto clauseResults = engine->GetSet(currentClause.name, inputsToClause);
         
-        vector<vector<string>> clausePermutation = PermutateVector(clauseInputs);
-        
-        vector<vector<string>> clauseResults;
-        for (auto i : clausePermutation)
-        {
-            auto temp = engine->GetSet(clause.name, i);
-            clauseResults.insert(end(clauseResults), begin(temp), end(temp));
-        }
-        
-        // ================================================================
-        // If the clause has no possible results, the subrule has none too.
-        // ================================================================
-        
+        // If there are no results, return empty.
+        // This terminates the recursion.
         if (clauseResults.size() == 0)
         {
-            vector<vector<string>> empty;
+            vector<ParamValueMap> empty;
             return empty;
         }
         
-        // =========================================================
-        // Delete all duplicate parameters in results - ex. ($X,$X).
-        // =========================================================
-        
-        vector<string> usedClauseParameters;
-        
-        for (int i = 0; i < (int)clause.parameters.size(); ++i)
+        // For each new clause result...
+        for (auto clauseResult : clauseResults)
         {
-            string param = clause.parameters[i];
+            // Duplicate the old, passed in result.
+            ParamValueMap newResult (inResult);
             
-            if (FindIndexOf(usedClauseParameters, param) == -1)
+            // For each parameter of the current clause...
+            for (int i=0; i < currentClause.parameters.size(); i++)
             {
-                usedClauseParameters.push_back(param);
-                continue;
-            }
-            
-            clause.parameters.erase(clause.parameters.begin() + i);
-            for (auto & result : clauseResults)
-            {
-                result.erase(result.begin() + i);
-            }
-            
-            i--;
-        }
-        
-        // ======================================================================
-        // Map each paramter to a spot in the vector and vice-versa.
-        //    The $Z parameter in the clause result might be at a different index
-        //    than the $Z parameter in the candidate results.
-        // ======================================================================
-        
-        unordered_map<int, int> candidateToClauseIndex;
-        
-        // FOR EACH PARAMETER
-        
-        bool allNewParameters = true;
-        
-        for (int i=0; i<(int)clause.parameters.size(); ++i)
-        {
-            string clauseParam = clause.parameters[i];
-            
-            // IF PARAMETER HAS NO ASSIGNED SPOT IN VECTOR,
-                // GIVE PARAMETER ASSIGNED SPORT IN VECTOR AND LINK VECTOR INDEX TO CLAUSE INDEX
-            
-            auto entry = paramToIndex.find(clauseParam);
-            if ( entry == paramToIndex.end() )
-            {
-                paramToIndex[clauseParam] = currentParamIndex;
-                candidateToClauseIndex[currentParamIndex] = i;
-                currentParamIndex++;
-                continue;
-            }
-            
-            // IF PARAMETER ALREADY HAS ASSIGNED SPOT IN VECTOR FROM PREV CLAUSE
-                // LINK ASSIGNED VECTOR INDEX TO CLAUSE INDEX
-            
-            int resultIndex = entry->second;
-            candidateToClauseIndex[resultIndex] = i;
-            allNewParameters = false;
-        }
-        
-        // =====================================================================================
-        // Handle if the clause and candidate results do not have matching parameters.
-        //   This happens on the first clause and on clauses with only new paramters.
-        //   EX. Clause1($X,$Y) Clause2($Y,$Z) Clause3($Q,$R)
-        //     [Clause1 and Clause3 have all new paramters]
-        // =====================================================================================
-        
-        // IF CLAUSE CONTAINS ONLY NEW PARAMETERS
-        if (allNewParameters)
-        {
-            int candidateNumber = (int) candidates.size();
-            
-            // IF NO EXISTING CANDIDATES EXIST, SET THE CLAUSE RESULTS AS THE NEW CANDIDATES
-            
-            if (candidateNumber == 0)
-            {
-                candidates = clauseResults;
-                continue;
-            }
-            
-            // IF CANDIDATES EXIST, PERMUTATE ALL EXISTING CANDIDATES WITH CLAUSE RESULTS
-            
-            else
-            {
-                vector<vector<string>> newResults;
+                string parameter = currentClause.parameters[i];
                 
-                for (auto i : candidates)
+                auto entry = newResult.find(parameter);
+                
+                // If we have not already used the parameter, add it to our mapping.
+                if (entry == newResult.end())
                 {
-                    for (auto k : clauseResults)
-                    {
-                        vector<string> newResult;
-                        newResult.reserve( i.size() + k.size());
-                        newResult.insert(newResult.end(), i.begin(), i.end());
-                        newResult.insert(newResult.end(), k.begin(), k.end());
-                        
-                        newResults.push_back(newResult);
-                    }
-                }
-                
-                candidates = newResults;
-                
-                continue;
-            }
-        }
-        
-        // ====================================================================
-        // Handle if the clause and candidate results have matching parameters.
-        // For each candidate, go through each new result:
-        //   If the candidate does not match any new clause result, delete it.
-        //   For each candidate does match a new clause result,
-        //                             permutate it with all the new parameters.
-        // ====================================================================
-        
-        int numberOfCandidates = (int) candidates.size();
-        
-        // FOR EACH CANDIDATE RESULT
-        
-        for (int candidateIndex = 0; candidateIndex < numberOfCandidates; ++candidateIndex)
-        {
-            auto candidate = candidates[candidateIndex];
-            int candidateSize = (int) candidate.size();
-            
-            bool hasAnyMatch = false;
-
-            // FOR EACH NEW RESULT
-            
-            for (auto clauseResult : clauseResults)
-            {
-                bool resultIsMatch = true;
-                
-                // FOR EACH PARAMETER IN THE CANDIDATE RESULT
-                
-                for (int i=0; i<candidateSize; ++i)
-                {
-                    // IF THE PARAMETER IS NOT PART OF THE NEW RESULT, IGNORE IT
-                    
-                    auto entry = candidateToClauseIndex.find(i);
-                    if ( entry == candidateToClauseIndex.end() )
-                    {
-                        continue;
-                    }
-                    int index = entry->second;
-                    
-                    // IF THE VALUE OF THE PARAMETER IN THE CANDIDATE AND NEW RESULT ARE NOT THE SAME,
-                        // THE CANDIDATE RESULT AND TEH NEW RESULT ARE NOT A MATCH
-                    
-                    if (candidate[i] != clauseResult[index])
-                    {
-                        resultIsMatch = false;
-                        break;
-                    }
-                }
-                
-                // IF THE CANDIDATE RESULT IS A MATCH WITH THE NEW RESULT
-                
-                if (resultIsMatch)
-                {
-                    hasAnyMatch = true;
-                    
-                    // IF THIS IS THE CANDIDATE RESULT'S FIRST NEW MATCH.
-                        // APPEND THE NEW VALUES
-                    
-                    if ( (int)candidate.size() < currentParamIndex)
-                    {
-                        while ( (int)candidate.size() < currentParamIndex)
-                        {
-                            int clauseParameterIndex = (int) candidateToClauseIndex[candidate.size()];
-                            string newParameter = clauseResult[clauseParameterIndex];
-                            candidate.push_back(newParameter);
-                            candidates[candidateIndex] = candidate;
-                        }
-                    }
-                    else
-                    {
-                        // ELSE DUPLICATE THIS VECTOR
-                        
-                        vector<string> newCandidate;
-                        
-                        for (int index = 0; index < candidateSize; ++index)
-                        {
-                            newCandidate.push_back(candidate[index]);
-                        }
-                        
-                        // APPEND THE NEW VALUES TO THE NEW VECTOR
-                        
-                        while ( (int)newCandidate.size() < currentParamIndex)
-                        {    
-                            int clauseParameterIndex = (int) candidateToClauseIndex[newCandidate.size()];
-                            string newParameter = clauseResult[clauseParameterIndex];
-                            newCandidate.push_back(newParameter);
-                        }
-
-                        candidates.push_back(newCandidate);
-                    }
+                    newResult[parameter] = clauseResult[i];
                 }
             }
             
-            // IF NONE OF THE NEW RESULTS MATCH THE CANDIDATE RESULT,
-                // DELETE THE CANDIDATE RESULT
-            
-            if (!hasAnyMatch)
-            {
-                candidates.erase(candidates.begin() + candidateIndex);
-                numberOfCandidates--;
-                candidateIndex--;
-                continue;
-            }
+            // Add the mapping to our dictionary of new, pipelined results.
+            newResults.push_back(newResult);
         }
     }
     
-    // =========================================================
-    // If there are no candidates left, return candidates
-    // =========================================================
-
-    if (candidates.size() == 0)
+    // If we are on the last clause, return our final pipelined results.
+    // This terminates the recursion.
+    if (clauseNumber == (subrule.clauses.size() - 1))
     {
-        return candidates;
+        return newResults;
+    }
+
+    vector<future<vector<ParamValueMap>>> futures;
+
+    // If we are not on the last clause...
+    //    for every new result, start a new thread and pipeline that result into the next clause.
+    for (auto newResult : newResults)
+    {
+        futures.push_back (async(&RuleBase::ProcessResults, (this), subrule, (clauseNumber + 1), newResult));
     }
     
-    // =========================================================
-    // Return only the paramters asked for my the subrule.
-    // =========================================================
+    vector<ParamValueMap> results;
     
-    vector<vector<string>> results(candidates.size());
-    
-    for (auto param : subrule.parameters)
+    // Wait for each new result thread to finish and merge the returned solutions.
+    for(auto &e : futures)
     {
-        int paramIndex = paramToIndex[param];
-        
-        for (int i=0; i < (int)candidates.size(); i++)
-        {
-            results[i].push_back(candidates[i][paramIndex]);
-        }
+        vector<ParamValueMap> threadResult = e.get();
+        results.insert(end(results), begin(threadResult), end(threadResult));
     }
     
     return results;
 }
 
-//outputs the entire rule base as an OS stream for the Dump command and for debugging
+// ==================================================================================
+// EXPORT
+//     -Writes all rules in RuleBase to a specified file.
+// ==================================================================================
+
 void RuleBase::Export(ostream& file)
 {
+    // For every rule...
     for (auto rule : rules)
     {
-        file << "RULE " << rule.first;
-        
+        // For every subrule...
         for (auto subrule : rule.second)
         {
+            // Write the RULE command and the rule name.
+            // EX. [ RULE Grandmother ]
+            file << "RULE " << rule.first;
             
+            // Write the rule command variables.
+            // EX. [ RULE Grandmother($X,$Y):- ]
             file << "(";
             for (int i=0; i < (int)subrule.parameters.size(); i++)
             {
@@ -438,8 +341,13 @@ void RuleBase::Export(ostream& file)
             }
             file << "):- ";
             
+            
+            // Write the AND / OR.
+            // EX. [ RULE Grandmother($X,$Y):- AND ]
             file << ((subrule.isAnd) ? "AND" : "OR");
             
+            // For each clause, write the clause name and parameter.
+            // EX. [ RULE Grandmother($X,$Y):- AND Mother($X,$Z) Parent($Z,$Y) ]
             for (auto clause : subrule.clauses)
             {
                 file << " " << clause.name << "(";
@@ -452,7 +360,6 @@ void RuleBase::Export(ostream& file)
                 file << ")";
             }
             file << endl;
-            
         }
     }
     

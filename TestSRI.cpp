@@ -520,7 +520,7 @@ TEST_CASE( "Edge Cases" )
     
     // =================================================================
     
-    SECTION( "-varying number of paraemters 1" )
+    SECTION( "-varying number of parameters 1" )
     {
         string f8 = "FACT a(b,c)";
         string f9 = "FACT a(b,c,d)";
@@ -622,6 +622,3 @@ TEST_CASE( "Edge Cases" )
         REQUIRE( output == expected );
     }
 }
-
-
-

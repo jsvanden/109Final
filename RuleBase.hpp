@@ -32,6 +32,7 @@ class RuleBase
     typedef std::string RuleName;
     typedef std::vector< Subrule > ListOfSubrules;
     typedef std::vector<std::vector<std::string>> ListOfSets;
+    typedef std::unordered_map<std::string, std::string> ParamValueMap;
     
 private:
     SRI * engine;
@@ -39,6 +40,7 @@ private:
     ListOfSets GetResultsOR(Subrule subrule, std::string name, std::vector<std::string> params);
     ListOfSets GetResultsAND(Subrule subrule, std::string name, std::vector<std::string> params);
     ListOfSets GetResultsClause (Clause clause, Subrule subrule, std::vector<std::string> params);
+    std::vector<ParamValueMap> ProcessResults (Subrule subrule, int clauseNumber, ParamValueMap inResult);
     
 public:
     ListOfSets GetResultSet(RuleName name, std::vector<std::string> params);

@@ -32,7 +32,6 @@ public:
     void InterpretLine (std::string& line);
     std::vector<std::vector<std::string>> GetSet (std::string name, std::vector<std::string> params);
     SRI();
-    ~SRI();
 };
 
 #endif

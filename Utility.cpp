@@ -6,8 +6,12 @@ using namespace std;
 
 namespace utility
 {
-    // Checks if a character is among the accepted characters.
-    bool isValidChar(char c)
+    // ==================================================================================
+    // IS VALID CHARACTER
+    //     -Checks if a character is among the accepted characters.
+    // ==================================================================================
+
+    bool IsValidChar(char c)
     {
         switch (c)
         {
@@ -27,13 +31,21 @@ namespace utility
         }
     }
     
-    // Removes a character if it is not among the accepted characters.
+    // ==================================================================================
+    // MAKE VALID
+    //     -Removes a character if it is not among the accepted characters.
+    // ==================================================================================
+
     void MakeValid (string& input)
     {
-        input.erase(remove_if(input.begin(), input.end(), [](char c){return !isValidChar(c);}), input.end());
+        input.erase(remove_if(input.begin(), input.end(), [](char c){return !IsValidChar(c);}), input.end());
     }
     
-    // Parses a string input into a vector containing each word.
+    // ==================================================================================
+    // STRING TO VECTOR
+    //     -Splits a string (by a specified delimiter) into a vector of strings.
+    // ==================================================================================
+
     vector<string> StringToVector(string input, char delimiter)
     {
         vector<string> output;
@@ -50,6 +62,12 @@ namespace utility
         
         return output;
     }
+    
+    // ==================================================================================
+    // STRING TO CLAUSE
+    //     -Parses a string containing a clause name and clause parameters.
+    //     -Translates string into the Clause data structure.
+    // ==================================================================================
     
     // Parses the name and parameters of a clause out of a string and forms them into a data structure.
     Clause StringToClause(string input)
@@ -102,13 +120,21 @@ namespace utility
         return output;
     }
     
-    // Returns true if a parameter is a variable.
+    // ==================================================================================
+    // IS VARIABLE
+    //     -Returns true if a parameter is a variable.
+    // ==================================================================================
+    
     bool IsVariable (string input)
     {
         return (input[0] == '$');
     }
     
-    // Returns the index of an item in the vector.
+    // ==================================================================================
+    // FIND INDEX OF
+    //     -Returns the index of a string in the vector or -1 if the string DNE.
+    // ==================================================================================
+    
     int FindIndexOf (vector<string> vector, string value)
     {
         int result = (int) (find(vector.begin(), vector.end(), value) - vector.begin());
@@ -116,52 +142,32 @@ namespace utility
         return (result == (int)vector.size()) ? -1 : result;
     }
     
-    // Runs through each clause and returns every possible permutation that satisfies a given rule.
-    vector<vector<string>> PermutateVector (vector<vector<string>> input)
-    {
-        vector<vector<string>> output2;
-        
-        int outputSize = 0;
-        
-        for (int k=0; k < (int)input.size(); ++k)
-        {
-            int permutationSize = (int) input[k].size();
-            
-            for (int i = k+1; i < (int)input.size(); ++i)
-            {
-                permutationSize *= input[i].size();
-            }
-            
-            outputSize = (k == 0) ? permutationSize : outputSize;
-            
-            for (int i = 0; i < outputSize; i++)
-            {
-                int index = floor(i / (permutationSize / input[k].size()) % input[k].size());
-                
-                if (k == 0)
-                    output2.push_back(vector<string> {input[k][index]});
-                else
-                    output2[i].push_back(input[k][index]);
-            }
-        }
-        
-        return output2;
-    }
+    // ==================================================================================
+    // (SRI EXCEPTION) : SRIException
+    //     -SRI Exception constructor.
+    // ==================================================================================
     
-    // SRI Exception constructor.
     SRIException::SRIException (string location, string message)
     {
         m_location = location;
         m_message = message;
     }
     
-    // SRI Exception alter location.
+    // ==================================================================================
+    // (SRI EXCEPTION) : SetLocation
+    //     -Alters where the exception is being thrown from.
+    // ==================================================================================
+    
     void SRIException::SetLocation (std::string newLocation)
     {
         m_location = newLocation;
     }
     
-    // SRI Exception throwing.
+    // ==================================================================================
+    // (SRI EXCEPTION) : what
+    //     -Returns the error message specified when thrown.
+    // ==================================================================================
+    
     const char* SRIException::what()
     {
         string output = m_location + " ERROR: " + m_message + "\n";

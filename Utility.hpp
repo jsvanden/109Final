@@ -1,13 +1,12 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Utility file contains functions for parsing important information     *
- *   from input strings, function for listing the available              *
- *   permutations of a given rule, exception classes.                    *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Utility file contains independent helper functions    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef Utility_hpp
 #define Utility_hpp
 
 #include "RuleBase.hpp"
+
 #include<stdexcept>
 
 namespace utility
@@ -17,7 +16,6 @@ namespace utility
     Clause StringToClause(std::string input);
     bool IsVariable (std::string input);
     int FindIndexOf (std::vector<std::string> vector, std::string value);
-    std::vector<std::vector<std::string>> PermutateVector (std::vector<std::vector<std::string>> input);
     
     class SRIException : public std::exception
     {
