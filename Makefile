@@ -13,7 +13,7 @@ TESTHEADER	= Catch.hpp
 TESTSOURCE	= TestSRI.cpp
 TESTOBJECT	= TestSRI.o
 
-FLAGS		= -std=gnu++11
+FLAGS		= -pthread -lpthread
 WARNING_FLAGS	= -std=gnu++11 -Wall
 
 
@@ -23,7 +23,7 @@ WARNING_FLAGS	= -std=gnu++11 -Wall
 all : $(EXEBIN)
 
 $(EXEBIN) : $(MAINOBJECT) $(OBJECTS) $(HEADERS)
-	g++ -o $(EXEBIN) $(MAINOBJECT) $(OBJECTS)
+	g++ $(FLAGS) -o $(EXEBIN) $(MAINOBJECT) $(OBJECTS)
 
 $(MAINOBJECT) : $(MAINSOURCE)
 	g++ -c $(WARNING_FLAGS) $(MAINSOURCE)
@@ -38,7 +38,7 @@ run :
 ##########################
 
 test : $(TESTOBJECT) $(OBJECTS) $(TESTHEADER) $(HEADERS)
-	g++ -o $(TESTEXEBIN) $(TESTOBJECT) $(OBJECTS)
+	g++ $(FLAGS) -o $(TESTEXEBIN) $(TESTOBJECT) $(OBJECTS)
 
 $(TESTOBJECT) : $(TESTSOURCE) $(TESTHEADER)
 	g++ -c $(WARNING_FLAGS) $(TESTSOURCE)

@@ -331,8 +331,7 @@ TEST_CASE( "Bad Input 1" )
         string output2 = "";
         string output3 = "";
         string output4 = "";
-        string output5 = "";
-        string output6 = "";
+        string output5 = "success";
         
         string expected = "FACT ERROR: incorrect number of parenthesis in clause\n";
         
@@ -356,12 +355,12 @@ TEST_CASE( "Bad Input 1" )
         
         try { engine.InterpretLine(f5); }
         catch (SRIException s) { output5 = s.what(); }
-
+        
         REQUIRE( output1 == expected );
         REQUIRE( output2 == expected );
         REQUIRE( output3 == expected );
         REQUIRE( output4 == expected );
-        REQUIRE( output5 == expected );
+        REQUIRE( (output5 == expected || output5 == "") );
     }
     
     // =================================================================
