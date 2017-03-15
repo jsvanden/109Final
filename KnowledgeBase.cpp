@@ -132,22 +132,26 @@ vector<string> KnowledgeBase::FilterResult(vector<string> result, string name, v
 //     -Writes all facts in KnowledgeBase to a specified file.
 // ==================================================================================
 
-void KnowledgeBase::Export(ostream& file)
+string KnowledgeBase::Export ()
 {
+    string output;
+
     for (auto fact : facts)
     {
         for (auto entry : fact.second)
         {
-            file << "FACT " << fact.first << "(";
+            output += ( "FACT " + fact.first + "(" );
             for (int i=0; i < (int)entry.size(); i++)
             {
-                if( i!=0 ){ file << ","; }
-                file << entry[i];
+                if( i!=0 ){ output += ","; }
+                output += entry[i];
             }
-            file << ")" << endl;
+            output += ");";
         }
         
     }
+
+    return output;
 }
 
 

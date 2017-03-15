@@ -3,13 +3,16 @@
 #define CATCH_CONFIG_MAIN
 #include "Catch.hpp"
 
-#include "SRI.hpp"
 #include "Utility.hpp"
-#include <string>
+#include "SRI.hpp"
+
+#include <thread>
 
 using namespace std;
 using namespace utility;
 
+// =================================================================
+// Example on PDF
 // =================================================================
 
 TEST_CASE( "Example on PDF" )
@@ -38,14 +41,8 @@ TEST_CASE( "Example on PDF" )
         engine.InterpretLine(f6);
         engine.InterpretLine(f7);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE Father($X,$Y)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "X:Roger, Y:John\nX:Roger, Y:Albert\nX:Allen, Y:Margret\n";
         
@@ -68,15 +65,9 @@ TEST_CASE( "Example on PDF" )
         engine.InterpretLine(f6);
         engine.InterpretLine(f7);
         engine.InterpretLine(r1);
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
+
         string simpleInference = "INFERENCE Parent($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Roger, B:John\nA:Roger, B:Albert\nA:Allen, B:Margret\nA:Marry, B:John\nA:Marry, B:Albert\nA:Margret, B:Robert\nA:Margret, B:Bob\n";
         
@@ -101,14 +92,8 @@ TEST_CASE( "Example on PDF" )
         engine.InterpretLine(r1);
         engine.InterpretLine(r2);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE GrandFather($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Allen, B:Robert\nA:Allen, B:Bob\n";
         
@@ -128,15 +113,9 @@ TEST_CASE( "Example on PDF" )
         engine.InterpretLine(f7);
         engine.InterpretLine(r1);
         engine.InterpretLine(r2);
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
+
         string simpleInference = "INFERENCE GrandFather($A,Robert)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Allen, Robert:Robert\n";
         
@@ -145,14 +124,8 @@ TEST_CASE( "Example on PDF" )
     
     // =================================================================
     
-    string fileName = "myTestFile.sri";
-    
-    // =================================================================
-    
     SECTION( "-saving a file" )
     {
-        remove( fileName.c_str() );
-        
         engine.InterpretLine(f1);
         engine.InterpretLine(f2);
         engine.InterpretLine(f3);
@@ -163,37 +136,10 @@ TEST_CASE( "Example on PDF" )
         engine.InterpretLine(r1);
         engine.InterpretLine(r2);
         
-        string saveCommand = "DUMP " + fileName;
-        engine.InterpretLine(saveCommand);
+        string saveCommand = "DUMP temp.sri";
+        string output = engine.InterpretLine(saveCommand);
         
-        bool didSaveFile;
-        if (FILE *file = fopen(fileName.c_str(), "r"))
-        {
-            didSaveFile = true;
-            fclose(file);
-        }
-        
-        REQUIRE( didSaveFile );
-    }
-    
-    // =================================================================
-    
-    SECTION( "-loading a file" )
-    {
-        string loadCommand = "LOAD " + fileName;
-        engine.InterpretLine(loadCommand);
-        remove( fileName.c_str() );
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
-        string simpleInference = "INFERENCE Parent($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
-        
-        string expected = "A:Roger, B:John\nA:Roger, B:Albert\nA:Allen, B:Margret\nA:Marry, B:John\nA:Marry, B:Albert\nA:Margret, B:Robert\nA:Margret, B:Bob\n";
+        string expected = "FACT Mother(Marry,John);FACT Mother(Marry,Albert);FACT Mother(Margret,Robert);FACT Mother(Margret,Bob);FACT Father(Roger,John);FACT Father(Roger,Albert);FACT Father(Allen,Margret);RULE GrandFather($X,$Y):- AND Father($X,$Z) Parent($Z,$Y);RULE Parent($X,$Y):- OR Father($X,$Y) Mother($X,$Y);";
         
         REQUIRE( output == expected );
     }
@@ -210,15 +156,8 @@ TEST_CASE( "Example on PDF" )
         string simpleDrop = "DROP Father";
         engine.InterpretLine(simpleDrop);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE Parent($A,$B)";
-        engine.InterpretLine(simpleInference);
-        
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Marry, B:John\n";
         
@@ -235,15 +174,8 @@ TEST_CASE( "Example on PDF" )
         string simpleDrop = "DROP Parent";
         engine.InterpretLine(simpleDrop);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE Parent($A,$B)";
-        engine.InterpretLine(simpleInference);
-        
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "NO RESULTS\n";
         
@@ -251,6 +183,8 @@ TEST_CASE( "Example on PDF" )
     }
 }
 
+// =================================================================
+// Bad Input 1
 // =================================================================
 
 TEST_CASE( "Bad Input 1" )
@@ -263,7 +197,7 @@ TEST_CASE( "Bad Input 1" )
     {
         string f1 = "FAC";
         string output = "";
-
+        
         try
         {
             engine.InterpretLine(f1);
@@ -385,7 +319,7 @@ TEST_CASE( "Bad Input 1" )
         
         try { engine.InterpretLine(f3); }
         catch (SRIException s) { output3 = s.what(); }
-
+        
         REQUIRE( output1 == expected );
         REQUIRE( output2 == expected );
         REQUIRE( output3 == expected );
@@ -396,14 +330,14 @@ TEST_CASE( "Bad Input 1" )
     SECTION( "-no AND/OR within rule" )
     {
         string output = "";
-
+        
         string expected = "RULE ERROR: no AND / OR specified\n";
-
+        
         string r1 = "RULE f(a,b) a(b,c) b(c,d)";
-
+        
         try { engine.InterpretLine(r1); }
         catch (SRIException s) { output = s.what(); }
-
+        
         REQUIRE( output == expected );
     }
     
@@ -422,56 +356,10 @@ TEST_CASE( "Bad Input 1" )
         
         REQUIRE( output == expected );
     }
-    
-    // =================================================================
-    
-    SECTION( "-loading file without sri extension" )
-    {
-        string output = "";
-        
-        string expected = "LOAD ERROR: infile must have extension \".sri\"\n";
-        
-        string input = "LOAD test";
-        
-        try { engine.InterpretLine(input); }
-        catch (SRIException s) { output = s.what(); }
-        
-        REQUIRE( output == expected );
-    }
-    
-    // =================================================================
-    
-    SECTION( "-loading non-existent file" )
-    {
-        string output = "no errors";
-        
-        string expected = "LOAD ERROR: could not LOAD from file \"filedoesnotexist.sri\"\n";
-        
-        string input = "LOAD filedoesnotexist.sri";
-        
-        try { engine.InterpretLine(input); }
-        catch (SRIException s) { output = ""; output = s.what(); }
-        
-        REQUIRE( (output == expected || output == "") );
-    }
-    
-    // =================================================================
-    
-    SECTION( "-saving file with bad name" )
-    {
-        string output = "";
-        
-        string expected = "SAVE ERROR: could not DUMP file\"///.sri\"\n";
-        
-        string input = "DUMP ///.sri";
-        
-        try { engine.InterpretLine(input); }
-        catch (SRIException s) { output = s.what(); }
-        
-        REQUIRE( output == expected );
-    }
 }
 
+// =================================================================
+// Edge Cases
 // =================================================================
 
 TEST_CASE( "Edge Cases" )
@@ -502,15 +390,9 @@ TEST_CASE( "Edge Cases" )
         engine.InterpretLine(f7);
         engine.InterpretLine(r1);
         engine.InterpretLine(r2);
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
+
         string simpleInference = "INFERENCE GrandFather($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Roger, B:John\nA:Roger, B:Albert\nA:Allen, B:Margret\n";
         
@@ -526,16 +408,10 @@ TEST_CASE( "Edge Cases" )
         
         engine.InterpretLine(f8);
         engine.InterpretLine(f9);
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
+
         string simpleInference = "INFERENCE a($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
-        
+        string output = engine.InterpretLine(simpleInference);
+
         string expected = "A:b, B:c\n";
         
         REQUIRE( output == expected );
@@ -550,15 +426,9 @@ TEST_CASE( "Edge Cases" )
         
         engine.InterpretLine(f8);
         engine.InterpretLine(f9);
-        
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
+
         string simpleInference = "INFERENCE a($A,$B,$C)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:b, B:c, C:d\n";
         
@@ -575,14 +445,8 @@ TEST_CASE( "Edge Cases" )
         engine.InterpretLine(f8);
         engine.InterpretLine(f9);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE love($A)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:myself\nA:you\n";
         
@@ -607,14 +471,8 @@ TEST_CASE( "Edge Cases" )
         engine.InterpretLine(r1);
         engine.InterpretLine(r2);
         
-        stringstream buffer;
-        streambuf * old = cout.rdbuf(buffer.rdbuf());
-        
         string simpleInference = "INFERENCE GrandFather($A,$B)";
-        engine.InterpretLine(simpleInference);
-        string output = buffer.str();
-        
-        cout.rdbuf(old);
+        string output = engine.InterpretLine(simpleInference);
         
         string expected = "A:Roger, B:John\nA:Roger, B:Albert\nA:Roger, B:Roger\n";
         

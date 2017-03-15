@@ -23,7 +23,7 @@ public:
     ListOfSets GetResultSet(FactName name, FactParams params);
     void AddFact (FactName name, FactParams params);
     void DropFact (FactName name);
-    void Export (std::ostream& file);
+    std::string Export ();
 };
 
 #endif

@@ -1,4 +1,3 @@
-#include "Utility.hpp"
 #include "SRI.hpp"
 
 #include <iostream>
@@ -214,7 +213,7 @@ vector<ParamValueMap> RuleBase::ProcessResults(Subrule subrule, int clauseNumber
             ParamValueMap newResult;
             
             // For each parameter...
-            for (int i=0; i < currentClause.parameters.size(); i++)
+            for (int i=0; i < ((int) currentClause.parameters.size()); i++)
             {
                 // Map the parameter string to the results, value string.
                 string parameter = currentClause.parameters[i];
@@ -268,7 +267,7 @@ vector<ParamValueMap> RuleBase::ProcessResults(Subrule subrule, int clauseNumber
             ParamValueMap newResult (inResult);
             
             // For each parameter of the current clause...
-            for (int i=0; i < currentClause.parameters.size(); i++)
+            for (int i=0; i < ((int) currentClause.parameters.size()); i++)
             {
                 string parameter = currentClause.parameters[i];
                 
@@ -288,7 +287,7 @@ vector<ParamValueMap> RuleBase::ProcessResults(Subrule subrule, int clauseNumber
     
     // If we are on the last clause, return our final pipelined results.
     // This terminates the recursion.
-    if (clauseNumber == (subrule.clauses.size() - 1))
+    if (clauseNumber == ((int) (subrule.clauses.size() - 1)))
     {
         return newResults;
     }
@@ -319,8 +318,10 @@ vector<ParamValueMap> RuleBase::ProcessResults(Subrule subrule, int clauseNumber
 //     -Writes all rules in RuleBase to a specified file.
 // ==================================================================================
 
-void RuleBase::Export(ostream& file)
+string RuleBase::Export()
 {
+    string output;
+
     // For every rule...
     for (auto rule : rules)
     {
@@ -329,38 +330,39 @@ void RuleBase::Export(ostream& file)
         {
             // Write the RULE command and the rule name.
             // EX. [ RULE Grandmother ]
-            file << "RULE " << rule.first;
+            output += ("RULE " + rule.first);
             
             // Write the rule command variables.
             // EX. [ RULE Grandmother($X,$Y):- ]
-            file << "(";
+            output += "(";
             for (int i=0; i < (int)subrule.parameters.size(); i++)
             {
-                if( i != 0 ){ file << ","; }
-                file << subrule.parameters[i];
+                if( i != 0 ){ output += ","; }
+                output += subrule.parameters[i];
             }
-            file << "):- ";
+            output += "):- ";
             
             
             // Write the AND / OR.
             // EX. [ RULE Grandmother($X,$Y):- AND ]
-            file << ((subrule.isAnd) ? "AND" : "OR");
+            output += ((subrule.isAnd) ? "AND" : "OR");
             
             // For each clause, write the clause name and parameter.
             // EX. [ RULE Grandmother($X,$Y):- AND Mother($X,$Z) Parent($Z,$Y) ]
             for (auto clause : subrule.clauses)
             {
-                file << " " << clause.name << "(";
+                output += (" " + clause.name + "(");
                 for (int i=0; i < (int)clause.parameters.size(); i++)
                 {
                     if( i != 0 )
-                       file << ",";
-                    file << clause.parameters[i];
+                       output +=",";
+                    output += clause.parameters[i];
                 }
-                file << ")";
+                output += ")";
             }
-            file << endl;
+            output += ";";
         }
     }
     
+    return output;
 }

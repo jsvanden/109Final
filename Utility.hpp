@@ -5,12 +5,22 @@
 #ifndef Utility_hpp
 #define Utility_hpp
 
-#include "RuleBase.hpp"
+//#include "RuleBase.hpp"
 
 #include<stdexcept>
+#include <vector>
+#include <string>
 
 namespace utility
 {
+    typedef struct Clause
+    {
+        std::string name;
+        std::vector<std::string> parameters;
+        
+    } Clause;
+    
+    
     void MakeValid (std::string& input);
     std::vector<std::string> StringToVector(std::string input, char delimiter);
     Clause StringToClause(std::string input);

@@ -19,17 +19,17 @@ private:
     KnowledgeBase knowledgeBase;
     RuleBase ruleBase;
     
-    void Drop(ListOfWords input);
-    void Fact(ListOfWords input);
-    void Rule(ListOfWords input);
-    void Save(ListOfWords input);
-    void Load(ListOfWords input);
-    void Infer(ListOfWords input);
+    std::string Drop(ListOfWords input);
+    std::string Fact(ListOfWords input);
+    std::string Rule(ListOfWords input);
+    std::string Save(ListOfWords input);
+    std::string Load(ListOfWords input);
+    std::string Infer(ListOfWords input);
 
-    std::unordered_map< std::string, std::function<void(ListOfWords)> > commands;
+    std::unordered_map< std::string, std::function<std::string(ListOfWords)> > commands;
 
 public:
-    void InterpretLine (std::string& line);
+    std::string InterpretLine (std::string& line);
     std::vector<std::vector<std::string>> GetSet (std::string name, std::vector<std::string> params);
     SRI();
 };

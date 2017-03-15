@@ -1,61 +1,75 @@
-# CS109 quarter project
-# simple makefile, creates the executable "sri_phase2”
-SOURCES		= KnowledgeBase.cpp RuleBase.cpp SRI.cpp Utility.cpp
-HEADERS		= KnowledgeBase.hpp RuleBase.hpp SRI.hpp Utility.hpp
-OBJECTS		= KnowledgeBase.o RuleBase.o SRI.o Utility.o
+COMMON_SRC		= Utility.cpp
+COMMON_HDR		= Utility.hpp
+COMMON_OBJ		= Utility.o
 
-EXEBIN		= sri
-MAINSOURCE	= main.cpp
-MAINOBJECT	= main.o
+CLIENT_EXE		= Client
+CLIENT_SRC		= ClientSocket.cpp Client.cpp
+CLIENT_HDR		= ClientSocket.hpp
+CLIENT_OBJ		= ClientSocket.o Client.o
+C_MAIN_SRC		= ClientMain.cpp
+C_MAIN_OBJ		= ClientMain.o
 
-TESTEXEBIN	= sri_test
-TESTHEADER	= Catch.hpp
-TESTSOURCE	= TestSRI.cpp
-TESTOBJECT	= TestSRI.o
+SERVER_EXE		= Server
+SERVER_SRC		= Server.cpp SRI.cpp KnowledgeBase.cpp RuleBase.cpp
+SERVER_HDR		= Server.hpp SRI.hpp KnowledgeBase.hpp RuleBase.hpp
+SERVER_OBJ		= Server.o SRI.o KnowledgeBase.o RuleBase.o
+S_MAIN_SRC		= ServerMain.cpp
+S_MAIN_OBJ		= ServerMain.o
 
-FLAGS		= -pthread -lpthread
-WARNING_FLAGS	= -std=gnu++11 -Wall
+TEST_EXE		= TestAll
+TEST_SRC		= TestAll.cpp
+TEST_HDR		= Catch.hpp
+T_MAIN_OBJ		= TestAll.o
 
+LINKING_FLAGS	= -pthread -lpthread
+COMPILE_FLAGS	= -std=gnu++11 -Wall
 
+####################################################################################
+# Build Commands
+####################################################################################
 
-##########################
+all :
+	make client
+	make server
 
-all : $(EXEBIN)
+client : $(C_MAIN_OBJ) $(CLIENT_OBJ) $(COMMON_OBJ) $(CLIENT_HDR) $(COMMON_HDR)
+	g++ $(LINKING_FLAGS) -o $(CLIENT_EXE) $(C_MAIN_OBJ) $(CLIENT_OBJ) $(COMMON_OBJ)
 
-$(EXEBIN) : $(MAINOBJECT) $(OBJECTS) $(HEADERS)
-	g++ $(FLAGS) -o $(EXEBIN) $(MAINOBJECT) $(OBJECTS)
+server : $(S_MAIN_OBJ) $(SERVER_OBJ) $(COMMON_OBJ) $(SERVER_HDR) $(COMMON_HDR)
+	g++ $(LINKING_FLAGS) -o $(SERVER_EXE) $(S_MAIN_OBJ) $(SERVER_OBJ) $(COMMON_OBJ)
 
-$(MAINOBJECT) : $(MAINSOURCE)
-	g++ -c $(WARNING_FLAGS) $(MAINSOURCE)
+test : $(T_MAIN_OBJ) $(CLIENT_OBJ) $(SERVER_OBJ) $(COMMON_OBJ) $(CLIENT_HDR) $(COMMON_HDR) $(SERVER_HDR)
+	g++ $(LINKING_FLAGS) -o $(TEST_EXE) $(T_MAIN_OBJ) $(CLIENT_OBJ) $(SERVER_OBJ) $(COMMON_OBJ)
 
-$(OBJECTS) : $(SOURCES) $(HEADERS)
-	g++ -c $(WARNING_FLAGS) $(SOURCES)
-
-run :
-	make all
-	./$(EXEBIN)
-
-##########################
-
-test : $(TESTOBJECT) $(OBJECTS) $(TESTHEADER) $(HEADERS)
-	g++ $(FLAGS) -o $(TESTEXEBIN) $(TESTOBJECT) $(OBJECTS)
-
-$(TESTOBJECT) : $(TESTSOURCE) $(TESTHEADER)
-	g++ -c $(WARNING_FLAGS) $(TESTSOURCE)
-
-testrun :
-	make test
-	./$(TESTEXEBIN)
-
-##########################
+####################################################################################
+# Clean Commands
+####################################################################################
 
 clean :
-	rm -f $(EXEBIN) $(TESTEXEBIN) $(OBJECTS) $(MAINOBJECT) $(TESTOBJECT)
+	rm -f $(CLIENT_EXE) $(SERVER_EXE) $(TEST_EXE)
+	rm -f *.o
 
 clean_files :
 	rm -f *.sri
 
-##########################
+####################################################################################
+# Helper Commands
+####################################################################################
 
-check :
-	valgrind --leak-check=full $(EXEBIN)
+$(COMMON_OBJ) : $(COMMON_SRC) $(COMMON_HDR)
+	g++ -c $(COMPILE_FLAGS) $(COMMON_SRC)
+
+$(CLIENT_OBJ) : $(CLIENT_SRC) $(CLIENT_HDR)
+	g++ -c $(COMPILE_FLAGS) $(CLIENT_SRC)
+
+$(SERVER_OBJ) : $(SERVER_SRC) $(SERVER_HDR)
+	g++ -c $(COMPILE_FLAGS) $(SERVER_SRC)
+
+$(C_MAIN_OBJ) : $(C_MAIN_SRC)
+	g++ -c $(COMPILE_FLAGS) $(C_MAIN_SRC)
+
+$(S_MAIN_OBJ) : $(S_MAIN_SRC)
+	g++ -c $(COMPILE_FLAGS) $(S_MAIN_SRC)
+
+$(T_MAIN_OBJ) : $(TEST_SRC) $(TEST_HDR)
+	g++ -c $(COMPILE_FLAGS) $(TEST_SRC)	
