@@ -14,6 +14,11 @@
 using namespace std;
 using namespace utility;
 
+// ==================================================================================
+// SERVER
+//     -Constructor to set up a master socket.
+// ==================================================================================
+
 Server::Server (int portNumber)
 {
 	struct sockaddr_in serv_addr;
@@ -36,10 +41,20 @@ Server::Server (int portNumber)
     clilen = sizeof(cli_addr);
 }
 
+// ==================================================================================
+// ~SERVER
+//     -Destructor to close the master socket.
+// ==================================================================================
+
 Server::~Server ()
 {
     close (sockfd);
 }
+
+// ==================================================================================
+// UPDATE
+//     -Waits for new connections and sends each connection to its own thread.
+// ==================================================================================
 
 void Server::Update ()
 {
@@ -51,6 +66,11 @@ void Server::Update ()
 	std::thread newConnection (&Server::ConnectionBody, this, newsockfd);
     newConnection.detach();
 }
+
+// ==================================================================================
+// READ
+//     -Waits for input from a client.
+// ==================================================================================
 
 string Server::Read(int socket)
 {
@@ -68,6 +88,11 @@ string Server::Read(int socket)
     return buffer;
 }
 
+// ==================================================================================
+// WRITE
+//     -Writes a string to a client.
+// ==================================================================================
+
 void Server::Write(int socket, string input)
 {
     int n;
@@ -81,9 +106,14 @@ void Server::Write(int socket, string input)
         throw SRIException("SOCKET", "failed to write to socket");
 }
 
+// ==================================================================================
+// CONNECTION BODY
+//     -Handles input and output from a client.
+// ==================================================================================
 
 void Server::ConnectionBody (int sock)
 {
+    // Each connection has its own SRI engine.
     SRI engine;
 
     string clientMessage;
@@ -91,6 +121,7 @@ void Server::ConnectionBody (int sock)
 
     while (true)
     {
+        // Wait for client input.
         try
         {
             clientMessage = Read(sock);
@@ -101,12 +132,14 @@ void Server::ConnectionBody (int sock)
             break;
         }
 
+        // If the client tells us to disconnect, leave the loop.
         if (clientMessage == "DISCONNECT")
         {
             Write (sock, "NULL");
             break;
         }
 
+        // If a client tells us to print a file, do it line by line.
         if (clientMessage == "PRINTFILE")
         {
             string saveCommand = "DUMP sample.sri";
@@ -123,11 +156,13 @@ void Server::ConnectionBody (int sock)
                 }
             }
 
+            // Send a terminating message.
             Write(sock, "ENDPRINT");
             
             continue;
         }
 
+        // Otherwise, send the input to the SRI engine.
         try
         {
             serverMessage = engine.InterpretLine(clientMessage);
@@ -138,9 +173,11 @@ void Server::ConnectionBody (int sock)
             serverMessage = s.what();
         }
 
+        // Sending an empty string will cause an error.
         if (serverMessage == "")
             serverMessage = "NULL";
 
+        // Send a response to the client.
         try
         {
             Write(sock, serverMessage);

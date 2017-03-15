@@ -1,6 +1,7 @@
-/* * * * * * * * * * * * * * * * * * * *
- *   *
- * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Daemon which gets connections to clients and handle their requests. *
+ * Modified from http://www.linuxhowtos.org/C_C++/socket.htm           *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef Server_hpp
 #define Server_hpp

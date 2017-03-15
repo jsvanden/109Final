@@ -7,6 +7,11 @@ using namespace std;
 using namespace utility;
 using namespace placeholders;
 
+// ==================================================================================
+// CLIENT
+//     -Constructor to set up string -> function interface.
+// ==================================================================================
+
 Client::Client ()
 {
 	commands.insert(make_pair("FACT", bind (&Client::SendRecieveOnce, this, _1, _2)));
@@ -18,6 +23,11 @@ Client::Client ()
     commands.insert(make_pair("LOAD", bind (&Client::SendFile, this, _1, _2)));
     commands.insert(make_pair("DUMP", bind (&Client::RecieveFile, this, _1, _2)));
 }
+
+// ==================================================================================
+// INTERPRET LINE
+//     -Takes line and calls corresponding function.
+// ==================================================================================
 
 string Client::InterpretLine(string& line)
 {
@@ -44,6 +54,11 @@ string Client::InterpretLine(string& line)
     
     return output;
 }
+
+// ==================================================================================
+// RECIEVE FILE
+//     -Tells the server to send the file line by line and listens for file. 
+// ==================================================================================
 
 string Client::RecieveFile(string line, vector<string> params)
 {
@@ -97,6 +112,11 @@ string Client::RecieveFile(string line, vector<string> params)
     return "NULL";
 }
 
+// ==================================================================================
+// SEND FILE
+//     -Sends a file line by line to the server.
+// ==================================================================================
+
 string Client::SendFile(string line, vector<string> params)
 {
     if( !socket.IsConnected() )
@@ -137,6 +157,11 @@ string Client::SendFile(string line, vector<string> params)
     return "NULL";
 }
 
+// ==================================================================================
+// SEND RECIEVE ONCE
+//     -Send a message the server and return the response.
+// ==================================================================================
+
 string Client::SendRecieveOnce(string line, vector<string> params)
 {
 	if( !socket.IsConnected() )
@@ -159,6 +184,11 @@ string Client::SendRecieveOnce(string line, vector<string> params)
 
 	return response;
 }
+
+// ==================================================================================
+// CONNECT TO SERVER
+//     -Send a connection request to a server.
+// ==================================================================================
 
 string Client::ConnectToServer(string line, vector<string> params)
 {
@@ -186,6 +216,11 @@ string Client::ConnectToServer(string line, vector<string> params)
 	return "Connected Successfully\n";
 }
 
+// ==================================================================================
+// DISCONNECT FROM SERVER
+//     -Send a disconnect request from the server.
+// ==================================================================================
+
 string Client::DisconnectFromServer(string line, vector<string> params)
 {
 	if( !socket.IsConnected() )
@@ -210,6 +245,7 @@ string Client::DisconnectFromServer(string line, vector<string> params)
     }
     catch (SRIException s)
     {
+        // If the Read fails, we still want to try to disconnect.
         try
         {
             socket.Disconnect();

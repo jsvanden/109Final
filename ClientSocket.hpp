@@ -1,6 +1,7 @@
-/* * * * * * * * * * * * * * * * * * * *
- *   *
- * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Helper class to handle the find details of connecting to a server.  *
+ * Modified from http://www.linuxhowtos.org/C_C++/socket.htm           *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef ClientSocket_hpp
 #define ClientSocket_hpp
@@ -17,7 +18,6 @@ public:
 	ClientSocket (std::string hostName, int portNumber);
 	ClientSocket ();
 	~ClientSocket ();
-	void Update();
 	std::string Read();
 	void Write(std::string input);
 	void Connect(std::string hostName, int portNumber);

@@ -1,6 +1,6 @@
-/* * * * * * * * * * * * * * * * * * * *
- *   *
- * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Client Class to handl user input and interface with the server. *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef Client_hpp
 #define Client_hpp

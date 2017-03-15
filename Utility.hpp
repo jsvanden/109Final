@@ -1,11 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Utility file contains independent helper functions    *
+ * Utility file contains independent helper functions.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef Utility_hpp
 #define Utility_hpp
-
-//#include "RuleBase.hpp"
 
 #include<stdexcept>
 #include <vector>

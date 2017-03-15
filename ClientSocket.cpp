@@ -14,27 +14,52 @@
 using namespace std;
 using namespace utility;
 
+// ==================================================================================
+// CLIENT SOCKET
+//     -Constructor that initializes a connection.
+// ==================================================================================
+
 ClientSocket::ClientSocket (string hostName, int portNumber)
 {
 	sockfd = -1;
 	Connect (hostName, portNumber);
 }
 
+// ==================================================================================
+// CLIENT SOCKET
+//     -Constructor that does not initialize a connection.
+// ==================================================================================
+
 ClientSocket::ClientSocket ()
 {
 	sockfd = -1;
 }
+
+// ==================================================================================
+// ~CLIENT SOCKET
+//     -Destructor to disconnect from the server.
+// ==================================================================================
 
 ClientSocket::~ClientSocket ()
 {
 	Disconnect();
 }
 
+// ==================================================================================
+// DISCONNECT
+//     -Close our connection to the server.
+// ==================================================================================
+
 void ClientSocket::Disconnect ()
 {
 	close(sockfd);
 	sockfd = -1;
 }
+
+// ==================================================================================
+// CONNECT
+//     -Connect to the server.
+// ==================================================================================
 
 void ClientSocket::Connect (string hostName, int portNumber)
 {
@@ -67,20 +92,10 @@ void ClientSocket::Connect (string hostName, int portNumber)
     }
 }
 
-void ClientSocket::Update ()
-{
-	printf("Please enter the message: ");
-
-    string myLine;
-
-    getline(cin, myLine);
-
-    Write(myLine);
-
-    string readLine = Read();
-
-    printf("%s\n", readLine.c_str());
-}
+// ==================================================================================
+// READ
+//     -Waits for a message from the server.
+// ==================================================================================
 
 string ClientSocket::Read()
 {
@@ -96,6 +111,11 @@ string ClientSocket::Read()
     return buffer;
 }
 
+// ==================================================================================
+// WRITE
+//     -Writes a message to the server
+// ==================================================================================
+
 void ClientSocket::Write(string input)
 {
 	int n;
@@ -108,6 +128,11 @@ void ClientSocket::Write(string input)
 	if (n < 0) 
         throw SRIException("SOCKET", "failed to write to server");
 }
+
+// ==================================================================================
+// IS CONNECTED
+//     -Returns whether or not we are connected to a server.
+// ==================================================================================
 
 bool ClientSocket::IsConnected()
 {
